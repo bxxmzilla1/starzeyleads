@@ -73,8 +73,7 @@ body.auth-loading .auth-wrap { visibility: hidden; }
 }
 
 .logo-name {
-  font-family: "Fraunces", serif;
-  font-weight: 700;
+  font-weight: 800;
   font-size: 1.45rem;
 }
 
@@ -133,8 +132,7 @@ body.auth-loading .auth-wrap { visibility: hidden; }
 .page-head { margin-bottom: 28px; }
 
 .page-head h1 {
-  font-family: "Fraunces", serif;
-  font-weight: 600;
+  font-weight: 800;
   font-size: 2rem;
   line-height: 1.2;
   margin-bottom: 6px;
@@ -153,8 +151,7 @@ body.auth-loading .auth-wrap { visibility: hidden; }
 .card + .card { margin-top: 22px; }
 
 .card h2 {
-  font-family: "Fraunces", serif;
-  font-weight: 600;
+  font-weight: 800;
   font-size: 1.25rem;
   margin-bottom: 16px;
 }
@@ -184,8 +181,7 @@ body.auth-loading .auth-wrap { visibility: hidden; }
 }
 
 .stat .stat-value {
-  font-family: "Fraunces", serif;
-  font-weight: 600;
+  font-weight: 800;
   font-size: 2rem;
   line-height: 1.1;
 }
@@ -347,8 +343,7 @@ tr:last-child td { border-bottom: none; }
 
 .empty-state strong {
   display: block;
-  font-family: "Fraunces", serif;
-  font-weight: 600;
+  font-weight: 800;
   font-size: 1.15rem;
   color: var(--ink);
   margin-bottom: 6px;
@@ -415,8 +410,7 @@ tr:last-child td { border-bottom: none; }
 .auth-card .logo { justify-content: center; margin-bottom: 22px; padding: 0; }
 
 .auth-title {
-  font-family: "Fraunces", serif;
-  font-weight: 600;
+  font-weight: 800;
   font-size: 1.45rem;
   text-align: center;
   margin-bottom: 4px;

@@ -19,7 +19,7 @@ Plain HTML/CSS/JS — no build step, no framework. Each section is its own
 directory-based page so every route loads independently and fast. A service
 worker (`sw.js`) precaches the shell and makes the app installable/offline-capable.
 
-External dependencies: Google Fonts (Fraunces + Nunito Sans) and
+External dependencies: Google Fonts (Nunito Sans) and
 `@supabase/supabase-js` v2 via CDN.
 
 ## Supabase setup (one time)
