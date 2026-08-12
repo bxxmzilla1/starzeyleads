@@ -493,29 +493,7 @@
 
     <!-- Hero copy -->
     <section class="hero-copy">
-      <span class="eyebrow" id="heroEyebrow">Free home value report</span>
-      <h1 id="heroHeadline">Find out what your home is <span class="hl">really worth</span> today</h1>
-      <p class="hero-sub" id="heroSubtext">Answer a few quick questions about your home and we'll put together a personalized value report — no cost, no pressure, no obligation.</p>
-      <ul class="trust-list">
-        <li>
-          <span class="check-chip" aria-hidden="true">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-          </span>
-          Based on recent sales near you
-        </li>
-        <li>
-          <span class="check-chip" aria-hidden="true">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-          </span>
-          Your info stays private
-        </li>
-        <li>
-          <span class="check-chip" aria-hidden="true">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-          </span>
-          No commitment to sell
-        </li>
-      </ul>
+      <h1 id="heroHeadline">Your home, sold in <span class="hl">less than 30 days</span> — fast.</h1>
     </section>
 
     <!-- Form card -->
@@ -679,8 +657,9 @@
 
   function applyLanding(trackingLink) {
     var landing = trackingLink.landing || {};
-    if (landing.eyebrow) {
-      document.getElementById("heroEyebrow").textContent = landing.eyebrow;
+    var eyebrowEl = document.getElementById("heroEyebrow");
+    if (landing.eyebrow && eyebrowEl) {
+      eyebrowEl.textContent = landing.eyebrow;
     }
     if (landing.headline) {
       /* *text* inside the headline becomes the soft blue underline block. */
@@ -697,8 +676,9 @@
         }
       });
     }
-    if (landing.subtext) {
-      document.getElementById("heroSubtext").textContent = landing.subtext;
+    var subtextEl = document.getElementById("heroSubtext");
+    if (landing.subtext && subtextEl) {
+      subtextEl.textContent = landing.subtext;
     }
   }
 
