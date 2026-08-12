@@ -52,12 +52,12 @@
   <main class="main">
     <div class="page-head">
       <h1>Tracking links</h1>
-      <p>Create a link for every campaign or channel. Each one gets its own landing page copy, and visits and leads are attributed to it automatically.</p>
+      <p>Create a link for every campaign or channel. Open a link's page to edit it, customize its landing copy, preview it, and watch visitors move through the form.</p>
     </div>
 
-    <!-- Create / edit form -->
+    <!-- Create form -->
     <div class="card">
-      <h2 id="formTitle">New tracking link</h2>
+      <h2>New tracking link</h2>
 
       <div class="form-row">
         <div class="field">
@@ -74,7 +74,6 @@
 
       <div class="row-actions">
         <button type="button" class="btn btn-primary" id="saveLink">Create link</button>
-        <button type="button" class="btn btn-ghost" id="cancelEdit" hidden>Cancel</button>
       </div>
     </div>
 
@@ -82,18 +81,6 @@
     <div class="card">
       <h2>Your links</h2>
       <div id="linksWrap"><div class="empty-state">Loading…</div></div>
-    </div>
-
-    <!-- Landing page preview -->
-    <div class="card" id="previewCard" hidden>
-      <div class="preview-head">
-        <h2 style="margin-bottom:0">Landing page preview <span class="pill" id="previewSlugPill"></span></h2>
-        <div class="row-actions">
-          <a class="btn btn-ghost btn-small" id="previewOpen" href="/" target="_blank" rel="noopener">Open in new tab</a>
-          <button type="button" class="btn btn-ghost btn-small" id="previewClose">Close preview</button>
-        </div>
-      </div>
-      <iframe class="preview-frame" id="previewFrame" title="Landing page preview"></iframe>
     </div>
   </main>
 </div>
@@ -111,20 +98,10 @@
   var nameInput = document.getElementById("linkName");
   var slugInput = document.getElementById("linkSlug");
   var saveBtn = document.getElementById("saveLink");
-  var cancelBtn = document.getElementById("cancelEdit");
-  var formTitle = document.getElementById("formTitle");
   var slugPreview = document.getElementById("slugPreview");
   var linksWrap = document.getElementById("linksWrap");
 
-  var previewCard = document.getElementById("previewCard");
-  var previewFrame = document.getElementById("previewFrame");
-  var previewOpen = document.getElementById("previewOpen");
-  var previewSlugPill = document.getElementById("previewSlugPill");
-  var previewClose = document.getElementById("previewClose");
-
-  var editingId = null;
   var slugTouched = false;
-  var previewSlug = null;
 
   /* Local caches, refreshed from Supabase after every mutation. */
   var allLinks = [];
@@ -149,7 +126,7 @@
 
   /* ---------- Slug auto-fill ---------- */
   nameInput.addEventListener("input", function () {
-    if (!slugTouched && !editingId) {
+    if (!slugTouched) {
       slugInput.value = StarzeyStore.slugify(nameInput.value);
     }
     updateSlugPreview();
@@ -165,7 +142,7 @@
     slugPreview.textContent = "/?t=" + slug;
   }
 
-  /* ---------- Form save / edit / cancel ---------- */
+  /* ---------- Create ---------- */
   function flagInvalid(input) {
     input.classList.add("invalid");
     input.focus();
@@ -175,18 +152,6 @@
     });
   }
 
-  function resetForm() {
-    editingId = null;
-    slugTouched = false;
-    nameInput.value = "";
-    slugInput.value = "";
-    formTitle.textContent = "New tracking link";
-    saveBtn.textContent = "Create link";
-    saveBtn.disabled = false;
-    cancelBtn.hidden = true;
-    updateSlugPreview();
-  }
-
   saveBtn.addEventListener("click", function () {
     var name = nameInput.value.trim();
     if (name.length < 2) {
@@ -194,62 +159,20 @@
       return;
     }
 
-    var data = {
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Creating…";
+
+    StarzeyStore.addLink({
       name: name,
       slug: slugInput.value.trim() || name
-    };
-
-    saveBtn.disabled = true;
-    saveBtn.textContent = editingId ? "Saving…" : "Creating…";
-
-    var action = editingId
-      ? StarzeyStore.updateLink(editingId, data)
-      : StarzeyStore.addLink(data);
-    var wasEditing = !!editingId;
-
-    action.then(function (link) {
-      showToast(wasEditing ? "Link updated" : "Link created");
-      resetForm();
-      if (!wasEditing) openPreview(link.slug);
-      return refresh();
+    }).then(function (link) {
+      /* Straight to the new link's own page for options and edits. */
+      location.href = "/admin/trackinglinks/link/?s=" + encodeURIComponent(link.slug);
     }).catch(function (err) {
-      showToast(err.message || "Couldn't save the link");
+      showToast(err.message || "Couldn't create the link");
       saveBtn.disabled = false;
-      saveBtn.textContent = editingId ? "Save changes" : "Create link";
+      saveBtn.textContent = "Create link";
     });
-  });
-
-  cancelBtn.addEventListener("click", resetForm);
-
-  function startEdit(link) {
-    editingId = link.id;
-    slugTouched = true;
-    nameInput.value = link.name;
-    slugInput.value = link.slug;
-    formTitle.textContent = "Edit tracking link";
-    saveBtn.textContent = "Save changes";
-    saveBtn.disabled = false;
-    cancelBtn.hidden = false;
-    updateSlugPreview();
-    nameInput.focus();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  /* ---------- Preview (landing page shown right in this section) ---------- */
-  function openPreview(slug) {
-    previewSlug = slug;
-    var url = "/?t=" + encodeURIComponent(slug);
-    previewFrame.src = url + "&preview=1";
-    previewOpen.href = url;
-    previewSlugPill.textContent = slug;
-    previewCard.hidden = false;
-    previewCard.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  previewClose.addEventListener("click", function () {
-    previewCard.hidden = true;
-    previewFrame.src = "about:blank";
-    previewSlug = null;
   });
 
   /* ---------- Render links list ---------- */
@@ -257,7 +180,7 @@
     if (allLinks.length === 0) {
       linksWrap.innerHTML =
         '<div class="empty-state"><strong>No tracking links yet</strong>' +
-        "Create one above — you'll get a shareable URL and a live preview of its landing page.</div>";
+        "Create one above — you'll get a shareable URL and a page to manage and monitor it.</div>";
       return;
     }
 
@@ -267,16 +190,15 @@
       "</tr></thead><tbody>" +
       allLinks.slice().reverse().map(function (link) {
         var linkLeads = allLeads.filter(function (l) { return l.linkSlug === link.slug; }).length;
+        var detailUrl = "/admin/trackinglinks/link/?s=" + encodeURIComponent(link.slug);
         return "<tr>" +
-          "<td><strong>" + esc(link.name) + "</strong></td>" +
+          '<td><a href="' + detailUrl + '" style="color:var(--ink);font-weight:800;text-decoration:none"><strong>' + esc(link.name) + "</strong></a></td>" +
           '<td><span class="link-url">' + esc(StarzeyStore.linkUrl(link)) + "</span></td>" +
           "<td>" + (link.visits || 0) + "</td>" +
           "<td>" + linkLeads + "</td>" +
           '<td><div class="row-actions">' +
-          '<button type="button" class="btn btn-primary btn-small" data-action="details" data-id="' + link.id + '">Progress</button>' +
+          '<a class="btn btn-primary btn-small" href="' + detailUrl + '">Manage</a>' +
           '<button type="button" class="btn btn-ghost btn-small" data-action="copy" data-id="' + link.id + '">Copy link</button>' +
-          '<button type="button" class="btn btn-ghost btn-small" data-action="preview" data-id="' + link.id + '">Preview</button>' +
-          '<button type="button" class="btn btn-ghost btn-small" data-action="edit" data-id="' + link.id + '">Edit</button>' +
           '<button type="button" class="btn btn-danger btn-small" data-action="delete" data-id="' + link.id + '">Delete</button>' +
           "</div></td>" +
           "</tr>";
@@ -301,24 +223,14 @@
     if (!link) return;
 
     switch (btn.dataset.action) {
-      case "details":
-        location.href = "/admin/trackinglinks/link/?s=" + encodeURIComponent(link.slug);
-        break;
       case "copy":
         navigator.clipboard.writeText(StarzeyStore.linkUrl(link)).then(function () {
           showToast("Link copied to clipboard");
         });
         break;
-      case "preview":
-        openPreview(link.slug);
-        break;
-      case "edit":
-        startEdit(link);
-        break;
       case "delete":
         if (confirm('Delete "' + link.name + '"? Its leads are kept, but the link will stop working.')) {
           StarzeyStore.deleteLink(link.id).then(function () {
-            if (previewSlug === link.slug) previewClose.click();
             showToast("Link deleted");
             return refresh();
           }).catch(function (err) {

@@ -552,6 +552,64 @@ tr:last-child td { border-bottom: none; }
   margin-bottom: 14px;
 }
 
+/* Desktop / mobile preview toggle */
+.device-toggle {
+  display: inline-flex;
+  gap: 5px;
+  background: var(--whisper);
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.device-toggle button {
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  border: none;
+  border-radius: 9px;
+  padding: 7px 14px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.device-toggle button.active {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow-tiny);
+}
+
+.preview-stage {
+  display: flex;
+  justify-content: center;
+  background: #F7FAFD;
+  border: 2px solid var(--whisper);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.preview-stage iframe {
+  width: 100%;
+  height: 640px;
+  border: none;
+  background: var(--bg);
+  display: block;
+}
+
+.preview-stage.mobile {
+  padding: 24px 12px;
+}
+
+.preview-stage.mobile iframe {
+  width: 390px;
+  max-width: 100%;
+  height: 720px;
+  border: 9px solid var(--ink);
+  border-radius: 36px;
+  box-shadow: var(--shadow-soft);
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 860px) {
   .app { grid-template-columns: 1fr; }

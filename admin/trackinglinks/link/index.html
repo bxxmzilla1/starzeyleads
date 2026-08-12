@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Link Progress — Starzey Admin</title>
+<title>Link Details — Starzey Admin</title>
 <meta name="theme-color" content="#EEF5FB">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
@@ -59,7 +59,7 @@
       <div class="row-actions" style="margin-top:12px">
         <button type="button" class="btn btn-ghost btn-small" id="copyLink">Copy link</button>
         <a class="btn btn-ghost btn-small" id="openLanding" href="/" target="_blank" rel="noopener">Open landing page</a>
-        <span class="pill" id="autoRefreshPill">Auto-refreshes every 10s</span>
+        <span class="pill" id="autoRefreshPill">Progress auto-refreshes every 10s</span>
       </div>
     </div>
 
@@ -79,6 +79,58 @@
       <div class="stat">
         <div class="stat-label">Completion rate</div>
         <div class="stat-value" id="statRate">—</div>
+      </div>
+    </div>
+
+    <!-- Link settings -->
+    <div class="card">
+      <h2>Link settings</h2>
+
+      <div class="form-row">
+        <div class="field">
+          <label for="editName">Name</label>
+          <input type="text" id="editName" placeholder="Facebook Spring Campaign">
+        </div>
+        <div class="field">
+          <label for="editSlug">Slug</label>
+          <input type="text" id="editSlug" placeholder="facebook-spring">
+          <div class="field-hint">Changing the slug changes the URL — anywhere the old link was shared will stop working.</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="editEyebrow">Custom eyebrow <span class="opt">(optional)</span></label>
+        <input type="text" id="editEyebrow" placeholder="Free home value report">
+      </div>
+
+      <div class="field">
+        <label for="editHeadline">Custom headline <span class="opt">(optional)</span></label>
+        <input type="text" id="editHeadline" placeholder="Find out what your home is *really worth* today">
+        <div class="field-hint">Wrap words in *asterisks* to give them the soft blue underline highlight.</div>
+      </div>
+
+      <div class="field">
+        <label for="editSubtext">Custom subtext <span class="opt">(optional)</span></label>
+        <textarea id="editSubtext" placeholder="Answer a few quick questions about your home and we'll put together a personalized value report — no cost, no pressure, no obligation."></textarea>
+      </div>
+
+      <div class="row-actions">
+        <button type="button" class="btn btn-primary" id="saveSettings">Save changes</button>
+        <button type="button" class="btn btn-danger" id="deleteLink">Delete link</button>
+      </div>
+    </div>
+
+    <!-- Landing page preview -->
+    <div class="card">
+      <div class="preview-head">
+        <h2 style="margin-bottom:0">Landing page preview</h2>
+        <div class="device-toggle" role="group" aria-label="Preview device">
+          <button type="button" id="deviceDesktop" class="active">Desktop</button>
+          <button type="button" id="deviceMobile">Mobile</button>
+        </div>
+      </div>
+      <div class="preview-stage" id="previewStage">
+        <iframe id="previewFrame" title="Landing page preview"></iframe>
       </div>
     </div>
 
@@ -116,6 +168,8 @@
   var STEPS = ["Started", "Address", "Timeline", "Agent", "Reason", "Condition", "Occupancy", "Contact"];
   var TOTAL_FORM_STEPS = 7;
 
+  var currentLink = null;
+
   var toast = document.getElementById("toast");
   var toastTimer = null;
 
@@ -138,7 +192,14 @@
       " · " + new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
   }
 
-  var currentLink = null;
+  /* ---------- Header + stats ---------- */
+  function renderHeader(link) {
+    document.title = link.name + " — Starzey Admin";
+    document.getElementById("linkName").textContent = link.name;
+    document.getElementById("linkUrl").textContent = StarzeyStore.linkUrl(link);
+    document.getElementById("openLanding").href = "/?t=" + encodeURIComponent(link.slug);
+    document.getElementById("statVisits").textContent = link.visits || 0;
+  }
 
   function loadLink() {
     return StarzeyStore.getLinkBySlug(slug).then(function (link) {
@@ -147,11 +208,7 @@
         return;
       }
       currentLink = link;
-      document.title = link.name + " — Starzey Admin";
-      document.getElementById("linkName").textContent = link.name;
-      document.getElementById("linkUrl").textContent = StarzeyStore.linkUrl(link);
-      document.getElementById("openLanding").href = "/?t=" + encodeURIComponent(link.slug);
-      document.getElementById("statVisits").textContent = link.visits || 0;
+      renderHeader(link);
     });
   }
 
@@ -161,6 +218,101 @@
       showToast("Link copied to clipboard");
     });
   });
+
+  /* ---------- Settings (edit everything about this link) ---------- */
+  var editName = document.getElementById("editName");
+  var editSlug = document.getElementById("editSlug");
+  var editEyebrow = document.getElementById("editEyebrow");
+  var editHeadline = document.getElementById("editHeadline");
+  var editSubtext = document.getElementById("editSubtext");
+  var saveSettings = document.getElementById("saveSettings");
+
+  /* Filled once on load and after saving — never during the 10s
+     progress refresh, so typing is never clobbered. */
+  function fillSettings(link) {
+    editName.value = link.name;
+    editSlug.value = link.slug;
+    editEyebrow.value = link.landing.eyebrow || "";
+    editHeadline.value = link.landing.headline || "";
+    editSubtext.value = link.landing.subtext || "";
+  }
+
+  function flagInvalid(input) {
+    input.classList.add("invalid");
+    input.focus();
+    input.addEventListener("input", function handler() {
+      input.classList.remove("invalid");
+      input.removeEventListener("input", handler);
+    });
+  }
+
+  saveSettings.addEventListener("click", function () {
+    var name = editName.value.trim();
+    if (name.length < 2) {
+      flagInvalid(editName);
+      return;
+    }
+
+    saveSettings.disabled = true;
+    saveSettings.textContent = "Saving…";
+
+    StarzeyStore.updateLink(currentLink.id, {
+      name: name,
+      slug: editSlug.value.trim() || name,
+      landing: {
+        eyebrow: editEyebrow.value.trim(),
+        headline: editHeadline.value.trim(),
+        subtext: editSubtext.value.trim()
+      }
+    }).then(function (link) {
+      currentLink = link;
+      if (link.slug !== slug) {
+        slug = link.slug;
+        history.replaceState(null, "", "?s=" + encodeURIComponent(slug));
+      }
+      renderHeader(link);
+      fillSettings(link);
+      setPreviewSrc();
+      showToast("Changes saved");
+    }).catch(function (err) {
+      showToast(err.message || "Couldn't save changes");
+    }).finally(function () {
+      saveSettings.disabled = false;
+      saveSettings.textContent = "Save changes";
+    });
+  });
+
+  document.getElementById("deleteLink").addEventListener("click", function () {
+    if (!currentLink) return;
+    if (confirm('Delete "' + currentLink.name + '"? Its leads are kept, but the link will stop working.')) {
+      StarzeyStore.deleteLink(currentLink.id).then(function () {
+        location.href = "/admin/trackinglinks/";
+      }).catch(function (err) {
+        showToast(err.message || "Couldn't delete the link");
+      });
+    }
+  });
+
+  /* ---------- Landing page preview (desktop / mobile) ---------- */
+  var previewStage = document.getElementById("previewStage");
+  var previewFrame = document.getElementById("previewFrame");
+  var deviceDesktop = document.getElementById("deviceDesktop");
+  var deviceMobile = document.getElementById("deviceMobile");
+
+  function setPreviewSrc() {
+    previewFrame.src = "/?t=" + encodeURIComponent(slug) + "&preview=1";
+  }
+
+  function setDevice(mobile) {
+    previewStage.classList.toggle("mobile", mobile);
+    deviceDesktop.classList.toggle("active", !mobile);
+    deviceMobile.classList.toggle("active", mobile);
+  }
+
+  deviceDesktop.addEventListener("click", function () { setDevice(false); });
+  deviceMobile.addEventListener("click", function () { setDevice(true); });
+
+  /* ---------- Funnel progress ---------- */
 
   /* Groups raw funnel events into one session summary per visitor. */
   function buildSessions(events) {
@@ -284,6 +436,8 @@
     document.body.classList.remove("auth-loading");
     return refresh();
   }).then(function () {
+    if (currentLink) fillSettings(currentLink);
+    setPreviewSrc();
     /* Live view: re-pull progress every 10 seconds while the tab is visible. */
     setInterval(function () {
       if (!document.hidden) refresh();
