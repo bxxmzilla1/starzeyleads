@@ -195,13 +195,16 @@
     updateLink: function (id, patch) {
       if (!configured) return notConfigured();
       return this.uniqueSlug(patch.slug || patch.name, id).then(function (slug) {
-        return client.from("tracking_links").update({
-          name: patch.name,
-          slug: slug,
-          eyebrow: patch.landing && patch.landing.eyebrow || "",
-          headline: patch.landing && patch.landing.headline || "",
-          subtext: patch.landing && patch.landing.subtext || ""
-        }).eq("id", id).select().single();
+        var update = { name: patch.name, slug: slug };
+        /* Landing copy is only touched when explicitly provided, so
+           renames don't wipe existing customization. */
+        if (patch.landing) {
+          update.eyebrow = patch.landing.eyebrow || "";
+          update.headline = patch.landing.headline || "";
+          update.subtext = patch.landing.subtext || "";
+        }
+        return client.from("tracking_links").update(update)
+          .eq("id", id).select().single();
       }).then(function (res) { return mapLink(unwrap(res)); });
     },
 
@@ -257,6 +260,43 @@
       if (!configured) return notConfigured();
       return client.from("leads").delete().eq("id", id)
         .then(function (res) { return unwrap(res); });
+    },
+
+    /* ---------- Funnel progress events ---------- */
+
+    /* Fire-and-forget: one row per step a visitor completes. */
+    recordFunnelEvent: function (evt) {
+      if (!configured) return Promise.resolve();
+      return client.from("funnel_events").insert({
+        session_id: evt.sessionId,
+        link_slug: evt.linkSlug,
+        step_index: evt.stepIndex,
+        step: evt.step,
+        value: evt.value || null
+      }).then(function (res) {
+        if (res.error) console.error("Starzey/Supabase:", res.error.message);
+      });
+    },
+
+    getFunnelEvents: function (slug) {
+      if (!configured) return Promise.resolve([]);
+      return client.from("funnel_events")
+        .select("*")
+        .eq("link_slug", slug)
+        .order("created_at", { ascending: true })
+        .then(function (res) {
+          return unwrap(res).map(function (row) {
+            return {
+              id: row.id,
+              sessionId: row.session_id,
+              linkSlug: row.link_slug,
+              stepIndex: row.step_index,
+              step: row.step,
+              value: row.value,
+              createdAt: row.created_at
+            };
+          });
+        });
     },
 
     slugify: slugify

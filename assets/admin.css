@@ -470,6 +470,70 @@ tr:last-child td { border-bottom: none; }
 .auth-msg.error { display: block; background: #FBEAEA; color: #A94444; }
 .auth-msg.ok { display: block; background: var(--whisper); color: var(--primary-deep); }
 
+/* ---------- Funnel progress (link detail page) ---------- */
+.funnel-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 52px;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.funnel-row .funnel-label { color: var(--ink-soft); }
+.funnel-row .funnel-count { text-align: right; }
+
+.funnel-bar {
+  height: 14px;
+  background: var(--whisper);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.funnel-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 999px;
+  min-width: 0;
+  transition: width 0.4s ease;
+}
+
+.mini-track {
+  display: inline-flex;
+  gap: 3px;
+  width: 105px;
+  vertical-align: middle;
+}
+
+.mini-seg {
+  height: 5px;
+  flex: 1;
+  border-radius: 999px;
+  background: var(--whisper);
+}
+
+.mini-seg.filled { background: var(--primary); }
+
+.progress-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 130px;
+}
+
+.progress-cell .progress-text {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+
+.progress-cell .progress-text.done { color: var(--primary-deep); }
+
+@media (prefers-reduced-motion: reduce) {
+  .funnel-fill { transition: none; }
+}
+
 /* Preview iframe */
 .preview-frame {
   width: 100%;

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Link Progress — Starzey Admin</title>
+<meta name="theme-color" content="#EEF5FB">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/admin.css">
+</head>
+<body class="auth-loading">
+<div class="app">
+
+  <aside class="sidebar">
+    <a class="logo" href="/admin/" aria-label="Starzey admin home">
+      <span class="logo-mark" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4E86D4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5v-5.5h4v5.5"/>
+        </svg>
+      </span>
+      <span class="logo-name">Starzey</span>
+    </a>
+
+    <nav class="nav" aria-label="Admin sections">
+      <a href="/admin/">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </a>
+      <a href="/admin/trackinglinks/" class="active">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+        Tracking links
+      </a>
+      <a href="/admin/leads/">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Leads
+      </a>
+      <button type="button" id="signOut">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+        Sign out
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">
+      Public page: <a href="/" target="_blank" rel="noopener">starzey.com</a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="page-head">
+      <p style="margin-bottom:10px"><a href="/admin/trackinglinks/" style="color:var(--primary-deep);font-weight:700;text-decoration:none">&#8592; All tracking links</a></p>
+      <h1 id="linkName">Tracking link</h1>
+      <p>
+        <span class="link-url" id="linkUrl"></span>
+      </p>
+      <div class="row-actions" style="margin-top:12px">
+        <button type="button" class="btn btn-ghost btn-small" id="copyLink">Copy link</button>
+        <a class="btn btn-ghost btn-small" id="openLanding" href="/" target="_blank" rel="noopener">Open landing page</a>
+        <span class="pill" id="autoRefreshPill">Auto-refreshes every 10s</span>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat">
+        <div class="stat-label">Visits</div>
+        <div class="stat-value" id="statVisits">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Started the form</div>
+        <div class="stat-value" id="statStarted">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Completed</div>
+        <div class="stat-value" id="statCompleted">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Completion rate</div>
+        <div class="stat-value" id="statRate">—</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Step-by-step funnel</h2>
+      <p class="muted" style="font-size:0.88rem;margin-bottom:16px">How many visitors made it through each question.</p>
+      <div id="funnelWrap"></div>
+    </div>
+
+    <div class="card">
+      <h2>Visitor sessions</h2>
+      <p class="muted" style="font-size:0.88rem;margin-bottom:16px">Each row is one visitor filling out the form, with their answers so far. Newest first.</p>
+      <div id="sessionsWrap"><div class="empty-state">Loading…</div></div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script src="/api/config"></script>
+<script src="/assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/store.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var slug = new URLSearchParams(location.search).get("s");
+  if (!slug) {
+    location.href = "/admin/trackinglinks/";
+    return;
+  }
+
+  /* Step index -> label. Index 0 = landed on the form. */
+  var STEPS = ["Started", "Address", "Timeline", "Agent", "Reason", "Condition", "Occupancy", "Contact"];
+  var TOTAL_FORM_STEPS = 7;
+
+  var toast = document.getElementById("toast");
+  var toastTimer = null;
+
+  function showToast(message) {
+    toast.textContent = message;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove("show"); }, 2200);
+  }
+
+  function esc(text) {
+    var div = document.createElement("div");
+    div.textContent = text == null ? "" : String(text);
+    return div.innerHTML;
+  }
+
+  function formatDate(iso) {
+    if (!iso) return "";
+    return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" }) +
+      " · " + new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  }
+
+  var currentLink = null;
+
+  function loadLink() {
+    return StarzeyStore.getLinkBySlug(slug).then(function (link) {
+      if (!link) {
+        location.href = "/admin/trackinglinks/";
+        return;
+      }
+      currentLink = link;
+      document.title = link.name + " — Starzey Admin";
+      document.getElementById("linkName").textContent = link.name;
+      document.getElementById("linkUrl").textContent = StarzeyStore.linkUrl(link);
+      document.getElementById("openLanding").href = "/?t=" + encodeURIComponent(link.slug);
+      document.getElementById("statVisits").textContent = link.visits || 0;
+    });
+  }
+
+  document.getElementById("copyLink").addEventListener("click", function () {
+    if (!currentLink) return;
+    navigator.clipboard.writeText(StarzeyStore.linkUrl(currentLink)).then(function () {
+      showToast("Link copied to clipboard");
+    });
+  });
+
+  /* Groups raw funnel events into one session summary per visitor. */
+  function buildSessions(events) {
+    var map = {};
+    events.forEach(function (evt) {
+      var s = map[evt.sessionId];
+      if (!s) {
+        s = map[evt.sessionId] = {
+          sessionId: evt.sessionId,
+          maxIndex: 0,
+          answers: {},
+          firstAt: evt.createdAt,
+          lastAt: evt.createdAt
+        };
+      }
+      if (evt.stepIndex > s.maxIndex) s.maxIndex = evt.stepIndex;
+      if (evt.value) s.answers[evt.step] = evt.value;
+      if (evt.createdAt < s.firstAt) s.firstAt = evt.createdAt;
+      if (evt.createdAt > s.lastAt) s.lastAt = evt.createdAt;
+    });
+    return Object.keys(map).map(function (key) { return map[key]; });
+  }
+
+  function renderFunnel(sessions) {
+    var wrap = document.getElementById("funnelWrap");
+    var total = sessions.length;
+
+    if (total === 0) {
+      wrap.innerHTML =
+        '<div class="empty-state"><strong>No visitors yet</strong>' +
+        'Once someone opens this link and starts the form, their progress shows up here.</div>';
+      return;
+    }
+
+    wrap.innerHTML = STEPS.map(function (label, i) {
+      var count = sessions.filter(function (s) { return s.maxIndex >= i; }).length;
+      var pct = Math.round((count / total) * 100);
+      return '<div class="funnel-row">' +
+        '<span class="funnel-label">' + esc(label) + "</span>" +
+        '<div class="funnel-bar"><div class="funnel-fill" style="width:' + pct + '%"></div></div>' +
+        '<span class="funnel-count">' + count + "</span>" +
+        "</div>";
+    }).join("");
+  }
+
+  function progressCell(session) {
+    var done = session.maxIndex >= TOTAL_FORM_STEPS;
+    var segs = "";
+    for (var i = 1; i <= TOTAL_FORM_STEPS; i++) {
+      segs += '<span class="mini-seg' + (session.maxIndex >= i ? " filled" : "") + '"></span>';
+    }
+    var text = done
+      ? "Completed"
+      : "On step " + Math.min(session.maxIndex + 1, TOTAL_FORM_STEPS) + " of " + TOTAL_FORM_STEPS;
+    return '<div class="progress-cell">' +
+      '<span class="mini-track">' + segs + "</span>" +
+      '<span class="progress-text' + (done ? " done" : "") + '">' + text + "</span>" +
+      "</div>";
+  }
+
+  function answersSummary(session) {
+    var parts = [];
+    ["timeline", "agent", "reason", "condition", "occupancy"].forEach(function (step) {
+      if (session.answers[step]) parts.push(esc(session.answers[step]));
+    });
+    if (session.answers.contact) parts.push("Name: " + esc(session.answers.contact));
+    return parts.length ? parts.join(" · ") : '<span class="muted">—</span>';
+  }
+
+  function renderSessions(sessions) {
+    var wrap = document.getElementById("sessionsWrap");
+
+    if (sessions.length === 0) {
+      wrap.innerHTML =
+        '<div class="empty-state"><strong>No sessions yet</strong>' +
+        "Share the link to start seeing visitors move through the form in real time.</div>";
+      return;
+    }
+
+    var sorted = sessions.slice().sort(function (a, b) {
+      return a.lastAt < b.lastAt ? 1 : -1;
+    });
+
+    wrap.innerHTML =
+      '<div class="table-wrap"><table><thead><tr>' +
+      "<th>Address</th><th>Progress</th><th>Answers so far</th><th>Started</th><th>Last activity</th>" +
+      "</tr></thead><tbody>" +
+      sorted.map(function (s) {
+        return "<tr>" +
+          "<td>" + (s.answers.address ? "<strong>" + esc(s.answers.address) + "</strong>" : '<span class="muted">Not entered yet</span>') + "</td>" +
+          "<td>" + progressCell(s) + "</td>" +
+          '<td style="max-width:320px">' + answersSummary(s) + "</td>" +
+          '<td class="muted">' + esc(formatDate(s.firstAt)) + "</td>" +
+          '<td class="muted">' + esc(formatDate(s.lastAt)) + "</td>" +
+          "</tr>";
+      }).join("") +
+      "</tbody></table></div>";
+  }
+
+  function refresh() {
+    return Promise.all([loadLink(), StarzeyStore.getFunnelEvents(slug)]).then(function (results) {
+      var sessions = buildSessions(results[1]);
+      var completed = sessions.filter(function (s) { return s.maxIndex >= TOTAL_FORM_STEPS; }).length;
+
+      document.getElementById("statStarted").textContent = sessions.length;
+      document.getElementById("statCompleted").textContent = completed;
+      document.getElementById("statRate").textContent =
+        sessions.length > 0 ? Math.round((completed / sessions.length) * 100) + "%" : "—";
+
+      renderFunnel(sessions);
+      renderSessions(sessions);
+    });
+  }
+
+  document.getElementById("signOut").addEventListener("click", function () {
+    StarzeyStore.signOut();
+  });
+
+  /* Auth guard: redirects to /admin/login/ when signed out. */
+  StarzeyStore.requireAuth().then(function () {
+    document.body.classList.remove("auth-loading");
+    return refresh();
+  }).then(function () {
+    /* Live view: re-pull progress every 10 seconds while the tab is visible. */
+    setInterval(function () {
+      if (!document.hidden) refresh();
+    }, 10000);
+  });
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js").catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>

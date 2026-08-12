@@ -713,6 +713,30 @@
   }
 
   /* ------------------------------------------------------------------
+   * Funnel progress tracking.
+   * Each visitor gets a session id; every completed step is recorded
+   * as a funnel_events row so the admin can watch progress per link.
+   * ---------------------------------------------------------------- */
+  var sessionId =
+    (window.crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : Date.now().toString(36) + Math.random().toString(36).slice(2);
+
+  function trackStep(stepIndex, stepName, value) {
+    if (!linkSlug || isPreview || !StarzeyStore.isConfigured()) return;
+    StarzeyStore.recordFunnelEvent({
+      sessionId: sessionId,
+      linkSlug: linkSlug,
+      stepIndex: stepIndex,
+      step: stepName,
+      value: value || null
+    });
+  }
+
+  /* Visitor landed on the form (viewing step 1). */
+  trackStep(0, "started");
+
+  /* ------------------------------------------------------------------
    * Lead payload — mirrors the shape of a future Supabase insert.
    * ---------------------------------------------------------------- */
   var lead = {
@@ -799,6 +823,7 @@
       return;
     }
     lead.address = value;
+    trackStep(1, "address", value);
     goNext();
   }
 
@@ -809,10 +834,11 @@
 
   /* ---------- Option steps (advance immediately on click) ---------- */
   var optionSteps = ["timeline", "agent", "reason", "condition", "occupancy"];
-  optionSteps.forEach(function (stepName) {
+  optionSteps.forEach(function (stepName, i) {
     steps[stepName].querySelectorAll(".option-btn").forEach(function (btn) {
       btn.addEventListener("click", function () {
         lead[stepName] = btn.dataset.value;
+        trackStep(i + 2, stepName, btn.dataset.value);
         goNext();
       });
     });
@@ -852,6 +878,7 @@
         console.error("Lead save failed:", err);
       });
     }
+    trackStep(7, "contact", name);
     console.log("Lead captured:", JSON.parse(JSON.stringify(lead)));
 
     goNext();

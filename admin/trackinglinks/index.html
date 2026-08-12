@@ -72,22 +72,6 @@
         </div>
       </div>
 
-      <div class="field">
-        <label for="linkEyebrow">Custom eyebrow <span class="opt">(optional)</span></label>
-        <input type="text" id="linkEyebrow" placeholder="Free home value report">
-      </div>
-
-      <div class="field">
-        <label for="linkHeadline">Custom headline <span class="opt">(optional)</span></label>
-        <input type="text" id="linkHeadline" placeholder="Find out what your home is *really worth* today">
-        <div class="field-hint">Wrap words in *asterisks* to give them the soft blue underline highlight.</div>
-      </div>
-
-      <div class="field">
-        <label for="linkSubtext">Custom subtext <span class="opt">(optional)</span></label>
-        <textarea id="linkSubtext" placeholder="Answer a few quick questions about your home and we'll put together a personalized value report — no cost, no pressure, no obligation."></textarea>
-      </div>
-
       <div class="row-actions">
         <button type="button" class="btn btn-primary" id="saveLink">Create link</button>
         <button type="button" class="btn btn-ghost" id="cancelEdit" hidden>Cancel</button>
@@ -126,9 +110,6 @@
 
   var nameInput = document.getElementById("linkName");
   var slugInput = document.getElementById("linkSlug");
-  var eyebrowInput = document.getElementById("linkEyebrow");
-  var headlineInput = document.getElementById("linkHeadline");
-  var subtextInput = document.getElementById("linkSubtext");
   var saveBtn = document.getElementById("saveLink");
   var cancelBtn = document.getElementById("cancelEdit");
   var formTitle = document.getElementById("formTitle");
@@ -199,9 +180,6 @@
     slugTouched = false;
     nameInput.value = "";
     slugInput.value = "";
-    eyebrowInput.value = "";
-    headlineInput.value = "";
-    subtextInput.value = "";
     formTitle.textContent = "New tracking link";
     saveBtn.textContent = "Create link";
     saveBtn.disabled = false;
@@ -218,12 +196,7 @@
 
     var data = {
       name: name,
-      slug: slugInput.value.trim() || name,
-      landing: {
-        eyebrow: eyebrowInput.value.trim(),
-        headline: headlineInput.value.trim(),
-        subtext: subtextInput.value.trim()
-      }
+      slug: slugInput.value.trim() || name
     };
 
     saveBtn.disabled = true;
@@ -253,9 +226,6 @@
     slugTouched = true;
     nameInput.value = link.name;
     slugInput.value = link.slug;
-    eyebrowInput.value = link.landing.eyebrow || "";
-    headlineInput.value = link.landing.headline || "";
-    subtextInput.value = link.landing.subtext || "";
     formTitle.textContent = "Edit tracking link";
     saveBtn.textContent = "Save changes";
     saveBtn.disabled = false;
@@ -303,6 +273,7 @@
           "<td>" + (link.visits || 0) + "</td>" +
           "<td>" + linkLeads + "</td>" +
           '<td><div class="row-actions">' +
+          '<button type="button" class="btn btn-primary btn-small" data-action="details" data-id="' + link.id + '">Progress</button>' +
           '<button type="button" class="btn btn-ghost btn-small" data-action="copy" data-id="' + link.id + '">Copy link</button>' +
           '<button type="button" class="btn btn-ghost btn-small" data-action="preview" data-id="' + link.id + '">Preview</button>' +
           '<button type="button" class="btn btn-ghost btn-small" data-action="edit" data-id="' + link.id + '">Edit</button>' +
@@ -330,6 +301,9 @@
     if (!link) return;
 
     switch (btn.dataset.action) {
+      case "details":
+        location.href = "/admin/trackinglinks/link/?s=" + encodeURIComponent(link.slug);
+        break;
       case "copy":
         navigator.clipboard.writeText(StarzeyStore.linkUrl(link)).then(function () {
           showToast("Link copied to clipboard");
