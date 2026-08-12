@@ -131,13 +131,14 @@
   } else {
     recentWrap.innerHTML =
       '<div class="table-wrap"><table><thead><tr>' +
-      "<th>Name</th><th>Phone</th><th>Address</th><th>Link</th><th>When</th>" +
+      "<th>Name</th><th>Phone</th><th>Location</th><th>Link</th><th>When</th>" +
       "</tr></thead><tbody>" +
       recent.map(function (lead) {
+        var loc = [lead.city, lead.country].filter(Boolean).join(", ");
         return "<tr>" +
           "<td><strong>" + esc(lead.fullName) + "</strong></td>" +
           "<td>" + esc(lead.phone) + "</td>" +
-          "<td>" + esc(lead.address) + "</td>" +
+          "<td>" + (loc ? esc(loc) : '<span class="muted">—</span>') + "</td>" +
           "<td>" + (lead.linkSlug ? '<span class="pill">' + esc(lead.linkSlug) + "</span>" : '<span class="muted">direct</span>') + "</td>" +
           '<td class="muted">' + esc(formatDate(lead.createdAt)) + "</td>" +
           "</tr>";

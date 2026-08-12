@@ -52,7 +52,7 @@
   <main class="main">
     <div class="page-head">
       <h1>Leads</h1>
-      <p>Everyone who completed the home valuation funnel, with the tracking link they came from.</p>
+      <p>Everyone who completed the funnel with a Twilio-verified phone number, with the tracking link they came from and their location.</p>
     </div>
 
     <div class="card">
@@ -127,17 +127,14 @@
 
     leadsWrap.innerHTML =
       '<div class="table-wrap"><table><thead><tr>' +
-      "<th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th>Timeline</th>" +
-      "<th>Condition</th><th>Link</th><th>When</th><th></th>" +
+      "<th>Name</th><th>Phone</th><th>Location</th><th>Link</th><th>When</th><th></th>" +
       "</tr></thead><tbody>" +
       leads.map(function (lead) {
+        var loc = [lead.city, lead.country].filter(Boolean).join(", ");
         return "<tr>" +
           "<td><strong>" + esc(lead.fullName) + "</strong></td>" +
-          "<td>" + esc(formatPhone(lead.phone)) + "</td>" +
-          "<td>" + (lead.email ? esc(lead.email) : '<span class="muted">—</span>') + "</td>" +
-          "<td>" + esc(lead.address) + "</td>" +
-          "<td>" + esc(lead.timeline) + "</td>" +
-          "<td>" + esc(lead.condition) + "</td>" +
+          "<td>" + esc(formatPhone(lead.phone)) + ' <span class="pill">Verified</span></td>' +
+          "<td>" + (loc ? esc(loc) : '<span class="muted">—</span>') + "</td>" +
           "<td>" + (lead.linkSlug ? '<span class="pill">' + esc(lead.linkSlug) + "</span>" : '<span class="muted">direct</span>') + "</td>" +
           '<td class="muted">' + esc(formatDate(lead.createdAt)) + "</td>" +
           '<td><button type="button" class="btn btn-danger btn-small" data-delete="' + lead.id + '">Delete</button></td>' +
@@ -167,8 +164,8 @@
       return;
     }
 
-    var columns = ["fullName", "phone", "email", "address", "timeline", "agent",
-                   "reason", "condition", "occupancy", "linkSlug", "createdAt"];
+    var columns = ["fullName", "phone", "country", "city", "ip",
+                   "linkSlug", "phoneValid", "createdAt"];
 
     function cell(value) {
       var text = value == null ? "" : String(value);

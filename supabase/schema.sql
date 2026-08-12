@@ -29,8 +29,16 @@ create table if not exists public.leads (
   phone text,
   email text,
   phone_valid boolean not null default false,
+  country text,
+  city text,
+  ip text,
   created_at timestamptz not null default now()
 );
+
+-- Upgrades for databases created before geolocation was added.
+alter table public.leads add column if not exists country text;
+alter table public.leads add column if not exists city text;
+alter table public.leads add column if not exists ip text;
 
 -- One row per funnel step a visitor completes on the landing page.
 -- session_id groups the events of a single visitor's attempt.

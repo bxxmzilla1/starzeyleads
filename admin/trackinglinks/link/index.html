@@ -165,8 +165,8 @@
   }
 
   /* Step index -> label. Index 0 = landed on the form. */
-  var STEPS = ["Started", "Address", "Timeline", "Agent", "Reason", "Condition", "Occupancy", "Contact"];
-  var TOTAL_FORM_STEPS = 7;
+  var STEPS = ["Started", "Full name", "Phone"];
+  var TOTAL_FORM_STEPS = 2;
 
   var currentLink = null;
 
@@ -373,13 +373,9 @@
       "</div>";
   }
 
-  function answersSummary(session) {
-    var parts = [];
-    ["timeline", "agent", "reason", "condition", "occupancy"].forEach(function (step) {
-      if (session.answers[step]) parts.push(esc(session.answers[step]));
-    });
-    if (session.answers.contact) parts.push("Name: " + esc(session.answers.contact));
-    return parts.length ? parts.join(" · ") : '<span class="muted">—</span>';
+  function formatPhone(digits) {
+    if (!digits || digits.length !== 10) return digits || "";
+    return "(" + digits.slice(0, 3) + ") " + digits.slice(3, 6) + "-" + digits.slice(6);
   }
 
   function renderSessions(sessions) {
@@ -398,13 +394,13 @@
 
     wrap.innerHTML =
       '<div class="table-wrap"><table><thead><tr>' +
-      "<th>Address</th><th>Progress</th><th>Answers so far</th><th>Started</th><th>Last activity</th>" +
+      "<th>Full name</th><th>Phone</th><th>Progress</th><th>Started</th><th>Last activity</th>" +
       "</tr></thead><tbody>" +
       sorted.map(function (s) {
         return "<tr>" +
-          "<td>" + (s.answers.address ? "<strong>" + esc(s.answers.address) + "</strong>" : '<span class="muted">Not entered yet</span>') + "</td>" +
+          "<td>" + (s.answers.name ? "<strong>" + esc(s.answers.name) + "</strong>" : '<span class="muted">Not entered yet</span>') + "</td>" +
+          "<td>" + (s.answers.phone ? esc(formatPhone(s.answers.phone)) : '<span class="muted">—</span>') + "</td>" +
           "<td>" + progressCell(s) + "</td>" +
-          '<td style="max-width:320px">' + answersSummary(s) + "</td>" +
           '<td class="muted">' + esc(formatDate(s.firstAt)) + "</td>" +
           '<td class="muted">' + esc(formatDate(s.lastAt)) + "</td>" +
           "</tr>";

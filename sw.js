@@ -2,7 +2,7 @@
  * page fast with a stale-while-revalidate strategy for assets and a
  * network-first strategy for pages (so fresh content wins online, but
  * everything still opens offline). */
-var CACHE = "starzey-v4";
+var CACHE = "starzey-v5";
 
 var SHELL = [
   "/",

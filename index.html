@@ -496,112 +496,38 @@
     <section class="form-card" aria-label="Home value questionnaire">
 
       <div class="progress-wrap" id="progressWrap">
-        <div class="progress-label" id="progressLabel" aria-live="polite">Step 1 of 7</div>
+        <div class="progress-label" id="progressLabel" aria-live="polite">Step 1 of 2</div>
         <div class="progress-track" aria-hidden="true">
           <div class="progress-seg" data-seg="1"></div>
           <div class="progress-seg" data-seg="2"></div>
-          <div class="progress-seg" data-seg="3"></div>
-          <div class="progress-seg" data-seg="4"></div>
-          <div class="progress-seg" data-seg="5"></div>
-          <div class="progress-seg" data-seg="6"></div>
-          <div class="progress-seg" data-seg="7"></div>
         </div>
       </div>
 
-      <!-- Step 1: Address -->
-      <div class="step" data-step="address">
-        <h2 class="step-title">Where's the home located?</h2>
-        <div class="field">
-          <label for="addressInput">Property address</label>
-          <input type="text" id="addressInput" placeholder="123 Maple Street, Springfield" autocomplete="street-address" enterkeyhint="go">
-        </div>
-        <button type="button" class="btn-primary" id="addressNext">Get my estimate</button>
-      </div>
-
-      <!-- Step 2: Timeline -->
-      <div class="step" data-step="timeline">
-        <h2 class="step-title">When are you thinking of selling?</h2>
-        <div class="options" role="group" aria-label="Selling timeline">
-          <button type="button" class="option-btn" data-value="As soon as possible">As soon as possible</button>
-          <button type="button" class="option-btn" data-value="In 1–3 months">In 1–3 months</button>
-          <button type="button" class="option-btn" data-value="In 3–6 months">In 3–6 months</button>
-          <button type="button" class="option-btn" data-value="In 6–12 months">In 6–12 months</button>
-          <button type="button" class="option-btn" data-value="Just curious about the value">Just curious about the value</button>
-        </div>
-        <button type="button" class="back-link">&#8592; Back</button>
-      </div>
-
-      <!-- Step 3: Agent -->
-      <div class="step" data-step="agent">
-        <h2 class="step-title">Are you working with a real estate agent?</h2>
-        <div class="options" role="group" aria-label="Agent status">
-          <button type="button" class="option-btn" data-value="No, not yet">No, not yet</button>
-          <button type="button" class="option-btn" data-value="I'm talking to a few">I'm talking to a few</button>
-          <button type="button" class="option-btn" data-value="Yes, I've signed with one">Yes, I've signed with one</button>
-        </div>
-        <button type="button" class="back-link">&#8592; Back</button>
-      </div>
-
-      <!-- Step 4: Reason -->
-      <div class="step" data-step="reason">
-        <h2 class="step-title">What's your main reason for selling?</h2>
-        <div class="options" role="group" aria-label="Reason for selling">
-          <button type="button" class="option-btn" data-value="Moving or relocating">Moving or relocating</button>
-          <button type="button" class="option-btn" data-value="Upgrading to a bigger home">Upgrading to a bigger home</button>
-          <button type="button" class="option-btn" data-value="Downsizing">Downsizing</button>
-          <button type="button" class="option-btn" data-value="I inherited this property">I inherited this property</button>
-          <button type="button" class="option-btn" data-value="Financial reasons">Financial reasons</button>
-          <button type="button" class="option-btn" data-value="Something else">Something else</button>
-        </div>
-        <button type="button" class="back-link">&#8592; Back</button>
-      </div>
-
-      <!-- Step 5: Condition -->
-      <div class="step" data-step="condition">
-        <h2 class="step-title">How would you describe the home's condition?</h2>
-        <div class="options" role="group" aria-label="Home condition">
-          <button type="button" class="option-btn" data-value="Move-in ready">Move-in ready</button>
-          <button type="button" class="option-btn" data-value="Good, needs minor touch-ups">Good, needs minor touch-ups</button>
-          <button type="button" class="option-btn" data-value="Needs some work">Needs some work</button>
-          <button type="button" class="option-btn" data-value="Needs major repairs">Needs major repairs</button>
-        </div>
-        <button type="button" class="back-link">&#8592; Back</button>
-      </div>
-
-      <!-- Step 6: Occupancy -->
-      <div class="step" data-step="occupancy">
-        <h2 class="step-title">Who currently lives in the home?</h2>
-        <div class="options" role="group" aria-label="Occupancy">
-          <button type="button" class="option-btn" data-value="I do">I do</button>
-          <button type="button" class="option-btn" data-value="Tenants">Tenants</button>
-          <button type="button" class="option-btn" data-value="It's vacant">It's vacant</button>
-        </div>
-        <button type="button" class="back-link">&#8592; Back</button>
-      </div>
-
-      <!-- Step 7: Contact -->
-      <div class="step" data-step="contact">
-        <h2 class="step-title">Where should we send your report?</h2>
-        <p class="step-hint">An assistant will call you very soon with your free evaluation.</p>
+      <!-- Step 1: Full name -->
+      <div class="step" data-step="name">
+        <h2 class="step-title">What's your full name?</h2>
         <div class="field">
           <label for="nameInput">Full name</label>
-          <input type="text" id="nameInput" placeholder="Jane Anderson" autocomplete="name" enterkeyhint="next">
+          <input type="text" id="nameInput" placeholder="Jane Anderson" autocomplete="name" enterkeyhint="go">
         </div>
+        <button type="button" class="btn-primary" id="nameNext">Continue</button>
+      </div>
+
+      <!-- Step 2: Phone -->
+      <div class="step" data-step="phone">
+        <h2 class="step-title">What's your phone number?</h2>
+        <p class="step-hint">An assistant will call you very soon with your free evaluation.</p>
         <div class="field">
           <label for="phoneInput">Mobile number</label>
-          <input type="tel" id="phoneInput" placeholder="(555) 123-4567" autocomplete="tel" inputmode="tel" enterkeyhint="next">
+          <input type="tel" id="phoneInput" placeholder="(555) 123-4567" autocomplete="tel" inputmode="tel" enterkeyhint="go">
         </div>
-        <div class="field">
-          <label for="emailInput">Email <span class="opt">(optional)</span></label>
-          <input type="email" id="emailInput" placeholder="jane@example.com" autocomplete="email" enterkeyhint="go">
-        </div>
-        <button type="button" class="btn-primary" id="contactNext">Get my free evaluation</button>
+        <button type="button" class="btn-primary" id="phoneFinish">Finish</button>
         <p class="privacy-note">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4A6685" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect x="4" y="11" width="16" height="10" rx="3"/>
             <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
           </svg>
-          Your details are kept private and are only used to prepare and deliver your home value report. We never sell your information.
+          Your details are kept private and are only used to prepare and deliver your free home evaluation. We never sell your information.
         </p>
         <button type="button" class="back-link">&#8592; Back</button>
       </div>
@@ -707,26 +633,30 @@
   trackStep(0, "started");
 
   /* ------------------------------------------------------------------
-   * Lead payload — mirrors the shape of a future Supabase insert.
+   * Geolocation (IPinfo via /api/geo) — resolved in the background,
+   * attached to the lead at submit time. Best-effort only.
+   * ---------------------------------------------------------------- */
+  var geoPromise = fetch("/api/geo")
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .catch(function () { return null; });
+
+  /* ------------------------------------------------------------------
+   * Lead payload — the shape of the Supabase insert.
    * ---------------------------------------------------------------- */
   var lead = {
     linkSlug: linkSlug,
-    address: null,
-    timeline: null,
-    agent: null,
-    reason: null,
-    condition: null,
-    occupancy: null,
     fullName: null,
     phone: null,
-    email: null,
     phoneValid: false,
+    country: null,
+    city: null,
+    ip: null,
     createdAt: null
   };
 
-  /* Ordered flow. First 7 count toward the progress bar. */
-  var FLOW = ["address", "timeline", "agent", "reason", "condition", "occupancy", "contact", "success"];
-  var NUMBERED_STEPS = 7;
+  /* Ordered flow. First 2 count toward the progress bar. */
+  var FLOW = ["name", "phone", "success"];
+  var NUMBERED_STEPS = 2;
 
   var steps = {};
   document.querySelectorAll(".step").forEach(function (el) {
@@ -783,83 +713,86 @@
     });
   }
 
-  /* ---------- Step 1: Address ---------- */
-  var addressInput = document.getElementById("addressInput");
+  /* ---------- Step 1: Full name ---------- */
+  var nameInput = document.getElementById("nameInput");
 
-  function submitAddress() {
-    var value = addressInput.value.trim();
-    if (value.length < 8) {
-      flagInvalid(addressInput);
+  function submitName() {
+    var name = nameInput.value.trim();
+    if (name.length < 2) {
+      flagInvalid(nameInput);
       return;
     }
-    lead.address = value;
-    trackStep(1, "address", value);
-    goNext();
-  }
-
-  document.getElementById("addressNext").addEventListener("click", submitAddress);
-  addressInput.addEventListener("keydown", function (e) {
-    if (e.key === "Enter") submitAddress();
-  });
-
-  /* ---------- Option steps (advance immediately on click) ---------- */
-  var optionSteps = ["timeline", "agent", "reason", "condition", "occupancy"];
-  optionSteps.forEach(function (stepName, i) {
-    steps[stepName].querySelectorAll(".option-btn").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        lead[stepName] = btn.dataset.value;
-        trackStep(i + 2, stepName, btn.dataset.value);
-        goNext();
-      });
-    });
-  });
-
-  /* ---------- Step 7: Contact ---------- */
-  var nameInput = document.getElementById("nameInput");
-  var phoneInput = document.getElementById("phoneInput");
-  var emailInput = document.getElementById("emailInput");
-
-  function submitContact() {
-    var name = nameInput.value.trim();
-    var phoneDigits = phoneInput.value.replace(/\D/g, "");
-    var email = emailInput.value.trim();
-    var ok = true;
-
-    if (name.length < 2) { flagInvalid(nameInput); ok = false; }
-    if (phoneDigits.length !== 10) { flagInvalid(phoneInput); ok = false; }
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { flagInvalid(emailInput); ok = false; }
-    if (!ok) return;
-
     lead.fullName = name;
-    lead.phone = phoneDigits;
-    lead.email = email || null;
-
-    // TODO: Validate the phone number via backend here using the free
-    // Twilio Lookup API (GET https://lookups.twilio.com/v2/PhoneNumbers/{phone}),
-    // which checks the number is real and well-formed without sending anything.
-    // Simulated for now — any 10-digit number passes.
-
-    lead.phoneValid = true;
-    lead.createdAt = new Date().toISOString();
-
-    /* Saved to the Supabase "leads" table (public-insert RLS policy). */
-    if (!isPreview && StarzeyStore.isConfigured()) {
-      StarzeyStore.addLead(lead).catch(function (err) {
-        console.error("Lead save failed:", err);
-      });
-    }
-    trackStep(7, "contact", name);
-    console.log("Lead captured:", JSON.parse(JSON.stringify(lead)));
-
+    trackStep(1, "name", name);
     goNext();
   }
 
-  document.getElementById("contactNext").addEventListener("click", submitContact);
+  document.getElementById("nameNext").addEventListener("click", submitName);
+  nameInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") submitName();
+  });
 
-  [nameInput, phoneInput, emailInput].forEach(function (input) {
-    input.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") submitContact();
-    });
+  /* ---------- Step 2: Phone (Finish) ---------- */
+  var phoneInput = document.getElementById("phoneInput");
+  var finishBtn = document.getElementById("phoneFinish");
+
+  function submitPhone() {
+    var phoneDigits = phoneInput.value.replace(/\D/g, "");
+    if (phoneDigits.length !== 10) {
+      flagInvalid(phoneInput);
+      return;
+    }
+
+    finishBtn.disabled = true;
+    finishBtn.textContent = "Checking…";
+
+    /* Server-side Twilio Lookup check — leads only count as verified
+       (and only appear in the admin) when the number is real. */
+    fetch("/api/verify-phone", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone: phoneDigits })
+    })
+      .then(function (r) { return r.ok ? r.json() : { valid: true, simulated: true }; })
+      .catch(function () { return { valid: true, simulated: true }; })
+      .then(function (result) {
+        if (!result.valid) {
+          finishBtn.disabled = false;
+          finishBtn.textContent = "Finish";
+          flagInvalid(phoneInput);
+          return;
+        }
+
+        lead.phone = phoneDigits;
+        lead.phoneValid = true;
+
+        return geoPromise.then(function (geo) {
+          if (geo) {
+            lead.country = geo.country || null;
+            lead.city = geo.city || null;
+            lead.ip = geo.ip || null;
+          }
+          lead.createdAt = new Date().toISOString();
+
+          /* Saved to the Supabase "leads" table (public-insert RLS policy). */
+          if (!isPreview && StarzeyStore.isConfigured()) {
+            StarzeyStore.addLead(lead).catch(function (err) {
+              console.error("Lead save failed:", err);
+            });
+          }
+          trackStep(2, "phone", phoneDigits);
+          console.log("Lead captured:", JSON.parse(JSON.stringify(lead)));
+
+          finishBtn.disabled = false;
+          finishBtn.textContent = "Finish";
+          goNext();
+        });
+      });
+  }
+
+  finishBtn.addEventListener("click", submitPhone);
+  phoneInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") submitPhone();
   });
 
   /* ---------- Back links ---------- */

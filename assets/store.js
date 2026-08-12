@@ -65,6 +65,9 @@
       phone: row.phone,
       email: row.email,
       phoneValid: row.phone_valid,
+      country: row.country,
+      city: row.city,
+      ip: row.ip,
       createdAt: row.created_at
     };
   }
@@ -231,10 +234,13 @@
 
     /* ---------- Leads ---------- */
 
+    /* Only leads whose phone number passed the Twilio Lookup check
+       are ever shown in the admin. */
     getLeads: function () {
       if (!configured) return Promise.resolve([]);
       return client.from("leads")
         .select("*")
+        .eq("phone_valid", true)
         .order("created_at", { ascending: true })
         .then(function (res) { return unwrap(res).map(mapLead); });
     },
@@ -252,7 +258,10 @@
         full_name: lead.fullName,
         phone: lead.phone,
         email: lead.email,
-        phone_valid: !!lead.phoneValid
+        phone_valid: !!lead.phoneValid,
+        country: lead.country || null,
+        city: lead.city || null,
+        ip: lead.ip || null
       }).then(function (res) { return unwrap(res); });
     },
 

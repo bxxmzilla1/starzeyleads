@@ -7,7 +7,7 @@ trackable landing pages.
 
 | URL | Purpose |
 |---|---|
-| `/` | Public landing page (7-step funnel). Reached via tracking links like `/?t=my-slug` |
+| `/` | Public landing page (2-step funnel: full name, phone). Reached via tracking links like `/?t=my-slug` |
 | `/admin/` | Dashboard — links, visits, leads, conversion (sign-in required) |
 | `/admin/trackinglinks/` | Create/manage tracking links with per-link landing copy and a live preview |
 | `/admin/leads/` | All captured leads, CSV export |
@@ -46,8 +46,13 @@ would then see your data. After creating your own account, disable new
 sign-ups in Supabase (Authentication → Sign In / Up → toggle off
 "Allow new users to sign up").
 
-Phone validation is still simulated with a `// TODO` marking where the
-Twilio Lookup API call goes.
+## Optional environment variables (Vercel)
+
+| Variable | Purpose |
+|---|---|
+| `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Supabase connection (served by `/api/config`) |
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` | Real phone validation via the free Twilio Lookup v2 API (`/api/verify-phone`). Without them, every 10-digit number passes. Only Twilio-verified leads are shown in the admin. |
+| `IPINFO_TOKEN` | IPinfo geolocation (`/api/geo`) — country and city are stored on each lead and shown in the admin. Works without a token within IPinfo's small free unauthenticated limits. |
 
 ## Develop locally
 
