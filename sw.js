@@ -51,6 +51,9 @@ self.addEventListener("fetch", function (event) {
 
   var url = new URL(request.url);
 
+  /* Never cache serverless endpoints (e.g. /api/config env values). */
+  if (url.origin === location.origin && url.pathname.indexOf("/api/") === 0) return;
+
   /* Pages: network first, cached shell as offline fallback. */
   if (request.mode === "navigate") {
     event.respondWith(

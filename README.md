@@ -28,8 +28,15 @@ External dependencies: Google Fonts (Fraunces + Nunito Sans) and
 2. In the SQL Editor, run the contents of `supabase/schema.sql`. This creates
    the `tracking_links` and `leads` tables, row-level security policies, and
    an `increment_visits()` function for anonymous visit counting.
-3. In Project Settings → API, copy the **Project URL** and **anon key** into
-   `assets/config.js`. The anon key is safe to commit — RLS controls access:
+3. Give the app your **Project URL** and **anon key** (Supabase → Project
+   Settings → API). Two ways:
+   - **Vercel (recommended):** Project Settings → Environment Variables, add
+     `SUPABASE_URL` and `SUPABASE_ANON_KEY`, then redeploy. They're served
+     to the pages by the `/api/config` serverless function.
+   - **Local dev / other static hosts:** paste them into `assets/config.js`.
+     The env-based config takes priority when both exist.
+
+   The anon key is public by design — RLS controls access:
    - visitors can read landing copy, count a visit, and submit a lead
    - only signed-in users can read leads or manage links
 4. Open `/admin/login/`, create your account, and sign in.
