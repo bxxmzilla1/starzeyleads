@@ -38,6 +38,10 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Leads
       </a>
+      <button type="button" id="signOut">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+        Sign out
+      </button>
     </nav>
 
     <div class="sidebar-foot">
@@ -93,7 +97,7 @@
     <!-- Links list -->
     <div class="card">
       <h2>Your links</h2>
-      <div id="linksWrap"></div>
+      <div id="linksWrap"><div class="empty-state">Loading…</div></div>
     </div>
 
     <!-- Landing page preview -->
@@ -112,6 +116,8 @@
 
 <div class="toast" id="toast" role="status"></div>
 
+<script src="/assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/assets/store.js"></script>
 <script>
 (function () {
@@ -137,6 +143,10 @@
   var editingId = null;
   var slugTouched = false;
   var previewSlug = null;
+
+  /* Local caches, refreshed from Supabase after every mutation. */
+  var allLinks = [];
+  var allLeads = [];
 
   /* ---------- Toast ---------- */
   var toast = document.getElementById("toast");
@@ -193,6 +203,7 @@
     subtextInput.value = "";
     formTitle.textContent = "New tracking link";
     saveBtn.textContent = "Create link";
+    saveBtn.disabled = false;
     cancelBtn.hidden = true;
     updateSlugPreview();
   }
@@ -214,17 +225,24 @@
       }
     };
 
-    if (editingId) {
-      StarzeyStore.updateLink(editingId, data);
-      showToast("Link updated");
-    } else {
-      var link = StarzeyStore.addLink(data);
-      showToast("Link created");
-      openPreview(link.slug);
-    }
+    saveBtn.disabled = true;
+    saveBtn.textContent = editingId ? "Saving…" : "Creating…";
 
-    resetForm();
-    render();
+    var action = editingId
+      ? StarzeyStore.updateLink(editingId, data)
+      : StarzeyStore.addLink(data);
+    var wasEditing = !!editingId;
+
+    action.then(function (link) {
+      showToast(wasEditing ? "Link updated" : "Link created");
+      resetForm();
+      if (!wasEditing) openPreview(link.slug);
+      return refresh();
+    }).catch(function (err) {
+      showToast(err.message || "Couldn't save the link");
+      saveBtn.disabled = false;
+      saveBtn.textContent = editingId ? "Save changes" : "Create link";
+    });
   });
 
   cancelBtn.addEventListener("click", resetForm);
@@ -239,6 +257,7 @@
     subtextInput.value = link.landing.subtext || "";
     formTitle.textContent = "Edit tracking link";
     saveBtn.textContent = "Save changes";
+    saveBtn.disabled = false;
     cancelBtn.hidden = false;
     updateSlugPreview();
     nameInput.focus();
@@ -264,9 +283,7 @@
 
   /* ---------- Render links list ---------- */
   function render() {
-    var links = StarzeyStore.getLinks();
-
-    if (links.length === 0) {
+    if (allLinks.length === 0) {
       linksWrap.innerHTML =
         '<div class="empty-state"><strong>No tracking links yet</strong>' +
         "Create one above — you'll get a shareable URL and a live preview of its landing page.</div>";
@@ -277,8 +294,8 @@
       '<div class="table-wrap"><table><thead><tr>' +
       "<th>Name</th><th>URL</th><th>Visits</th><th>Leads</th><th>Actions</th>" +
       "</tr></thead><tbody>" +
-      links.slice().reverse().map(function (link) {
-        var linkLeads = StarzeyStore.leadsForSlug(link.slug).length;
+      allLinks.slice().reverse().map(function (link) {
+        var linkLeads = allLeads.filter(function (l) { return l.linkSlug === link.slug; }).length;
         return "<tr>" +
           "<td><strong>" + esc(link.name) + "</strong></td>" +
           '<td><span class="link-url">' + esc(StarzeyStore.linkUrl(link)) + "</span></td>" +
@@ -295,11 +312,20 @@
       "</tbody></table></div>";
   }
 
+  function refresh() {
+    return Promise.all([StarzeyStore.getLinks(), StarzeyStore.getLeads()])
+      .then(function (results) {
+        allLinks = results[0];
+        allLeads = results[1];
+        render();
+      });
+  }
+
   linksWrap.addEventListener("click", function (e) {
     var btn = e.target.closest("button[data-action]");
     if (!btn) return;
 
-    var link = StarzeyStore.getLinks().find(function (l) { return l.id === btn.dataset.id; });
+    var link = allLinks.find(function (l) { return l.id === btn.dataset.id; });
     if (!link) return;
 
     switch (btn.dataset.action) {
@@ -316,17 +342,26 @@
         break;
       case "delete":
         if (confirm('Delete "' + link.name + '"? Its leads are kept, but the link will stop working.')) {
-          StarzeyStore.deleteLink(link.id);
-          if (previewSlug === link.slug) previewClose.click();
-          showToast("Link deleted");
-          render();
+          StarzeyStore.deleteLink(link.id).then(function () {
+            if (previewSlug === link.slug) previewClose.click();
+            showToast("Link deleted");
+            return refresh();
+          }).catch(function (err) {
+            showToast(err.message || "Couldn't delete the link");
+          });
         }
         break;
     }
   });
 
+  document.getElementById("signOut").addEventListener("click", function () {
+    StarzeyStore.signOut();
+  });
+
   updateSlugPreview();
-  render();
+
+  /* Auth guard: redirects to /admin/login/ when signed out. */
+  StarzeyStore.requireAuth().then(refresh);
 
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("/sw.js").catch(function () {});

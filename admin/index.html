@@ -38,6 +38,10 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Leads
       </a>
+      <button type="button" id="signOut">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+        Sign out
+      </button>
     </nav>
 
     <div class="sidebar-foot">
@@ -82,21 +86,12 @@
   </main>
 </div>
 
+<script src="/assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/assets/store.js"></script>
 <script>
 (function () {
   "use strict";
-
-  var links = StarzeyStore.getLinks();
-  var leads = StarzeyStore.getLeads();
-
-  var totalVisits = links.reduce(function (sum, l) { return sum + (l.visits || 0); }, 0);
-
-  document.getElementById("statLinks").textContent = links.length;
-  document.getElementById("statVisits").textContent = totalVisits;
-  document.getElementById("statLeads").textContent = leads.length;
-  document.getElementById("statConversion").textContent =
-    totalVisits > 0 ? Math.round((leads.length / totalVisits) * 100) + "%" : "—";
 
   function esc(text) {
     var div = document.createElement("div");
@@ -108,6 +103,20 @@
     if (!iso) return "";
     return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" }) +
       " · " + new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  }
+
+  function init(links, leads) {
+
+  var totalVisits = links.reduce(function (sum, l) { return sum + (l.visits || 0); }, 0);
+
+  document.getElementById("statLinks").textContent = links.length;
+  document.getElementById("statVisits").textContent = totalVisits;
+  document.getElementById("statLeads").textContent = leads.length;
+  document.getElementById("statConversion").textContent =
+    totalVisits > 0 ? Math.round((leads.length / totalVisits) * 100) + "%" : "—";
+
+  function leadsForSlug(slug) {
+    return leads.filter(function (l) { return l.linkSlug === slug; }).length;
   }
 
   /* Recent leads (latest 5) */
@@ -149,7 +158,7 @@
       "<th>Name</th><th>Slug</th><th>Visits</th><th>Leads</th><th>Conversion</th>" +
       "</tr></thead><tbody>" +
       sorted.map(function (link) {
-        var linkLeads = StarzeyStore.leadsForSlug(link.slug).length;
+        var linkLeads = leadsForSlug(link.slug);
         var conv = link.visits > 0 ? Math.round((linkLeads / link.visits) * 100) + "%" : "—";
         return "<tr>" +
           "<td><strong>" + esc(link.name) + "</strong></td>" +
@@ -161,6 +170,19 @@
       }).join("") +
       "</tbody></table></div>";
   }
+
+  }
+
+  /* Auth guard: redirects to /admin/login/ when signed out. */
+  StarzeyStore.requireAuth().then(function () {
+    return Promise.all([StarzeyStore.getLinks(), StarzeyStore.getLeads()]);
+  }).then(function (results) {
+    init(results[0], results[1]);
+  });
+
+  document.getElementById("signOut").addEventListener("click", function () {
+    StarzeyStore.signOut();
+  });
 
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("/sw.js").catch(function () {});

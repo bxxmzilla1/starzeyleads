@@ -1,34 +1,29 @@
 /* ====================================================================
- * Starzey data layer — localStorage-backed for now.
+ * Starzey data layer — Supabase-backed.
  *
- * TODO: Replace with Supabase. Every function below maps 1:1 to a
- * table operation:
- *   - links  -> supabase.from("tracking_links")
- *   - leads  -> supabase.from("leads")
- *   - visits -> supabase.rpc("increment_visits") or an insert into a
- *               "visits" events table.
+ * Requires (loaded before this file):
+ *   1. /assets/config.js                (window.STARZEY_CONFIG)
+ *   2. @supabase/supabase-js v2 via CDN (window.supabase)
+ *
+ * All data methods return Promises. Tables live in supabase/schema.sql:
+ *   - tracking_links (public read, authenticated write)
+ *   - leads          (public insert, authenticated read/delete)
+ *   - increment_visits() RPC for anonymous visit counting
  * ================================================================== */
 (function (global) {
   "use strict";
 
-  var LINKS_KEY = "starzey:links";
-  var LEADS_KEY = "starzey:leads";
+  var cfg = global.STARZEY_CONFIG || {};
+  var configured = !!(
+    cfg.SUPABASE_URL &&
+    cfg.SUPABASE_ANON_KEY &&
+    cfg.SUPABASE_URL.indexOf("YOUR-PROJECT") === -1 &&
+    cfg.SUPABASE_ANON_KEY !== "YOUR-ANON-KEY"
+  );
 
-  function read(key) {
-    try {
-      return JSON.parse(localStorage.getItem(key)) || [];
-    } catch (e) {
-      return [];
-    }
-  }
-
-  function write(key, value) {
-    localStorage.setItem(key, JSON.stringify(value));
-  }
-
-  function uid() {
-    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-  }
+  var client = configured && global.supabase
+    ? global.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY)
+    : null;
 
   function slugify(text) {
     return text
@@ -39,82 +34,194 @@
       .slice(0, 40) || "link";
   }
 
+  function mapLink(row) {
+    if (!row) return null;
+    return {
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      landing: {
+        eyebrow: row.eyebrow || "",
+        headline: row.headline || "",
+        subtext: row.subtext || ""
+      },
+      visits: row.visits || 0,
+      createdAt: row.created_at
+    };
+  }
+
+  function mapLead(row) {
+    if (!row) return null;
+    return {
+      id: row.id,
+      linkSlug: row.link_slug,
+      address: row.address,
+      timeline: row.timeline,
+      agent: row.agent,
+      reason: row.reason,
+      condition: row.condition,
+      occupancy: row.occupancy,
+      fullName: row.full_name,
+      phone: row.phone,
+      email: row.email,
+      phoneValid: row.phone_valid,
+      createdAt: row.created_at
+    };
+  }
+
+  function unwrap(res) {
+    if (res.error) {
+      console.error("Starzey/Supabase:", res.error.message || res.error);
+      throw res.error;
+    }
+    return res.data;
+  }
+
+  function notConfigured() {
+    return Promise.reject(new Error(
+      "Supabase is not configured — fill in assets/config.js"
+    ));
+  }
+
   var Store = {
+
+    isConfigured: function () { return configured; },
+    client: client,
+
+    /* ---------- Auth ---------- */
+
+    getSession: function () {
+      if (!configured) return Promise.resolve(null);
+      return client.auth.getSession().then(function (res) {
+        return res.data.session || null;
+      });
+    },
+
+    /* Redirects to the login page when there is no session.
+       Returns a never-resolving promise on redirect so page init
+       code simply doesn't run. */
+    requireAuth: function () {
+      if (!configured) {
+        location.href = "/admin/login/";
+        return new Promise(function () {});
+      }
+      return this.getSession().then(function (session) {
+        if (!session) {
+          location.href = "/admin/login/";
+          return new Promise(function () {});
+        }
+        return session;
+      });
+    },
+
+    signIn: function (email, password) {
+      if (!configured) return notConfigured();
+      return client.auth.signInWithPassword({ email: email, password: password })
+        .then(function (res) {
+          if (res.error) throw res.error;
+          return res.data;
+        });
+    },
+
+    signUp: function (email, password) {
+      if (!configured) return notConfigured();
+      return client.auth.signUp({ email: email, password: password })
+        .then(function (res) {
+          if (res.error) throw res.error;
+          return res.data;
+        });
+    },
+
+    signOut: function () {
+      if (!configured) return Promise.resolve();
+      return client.auth.signOut().then(function () {
+        location.href = "/admin/login/";
+      });
+    },
 
     /* ---------- Tracking links ---------- */
 
     getLinks: function () {
-      return read(LINKS_KEY);
+      if (!configured) return Promise.resolve([]);
+      return client.from("tracking_links")
+        .select("*")
+        .order("created_at", { ascending: true })
+        .then(function (res) { return unwrap(res).map(mapLink); });
     },
 
     getLinkBySlug: function (slug) {
-      return this.getLinks().find(function (l) { return l.slug === slug; }) || null;
+      if (!configured) return Promise.resolve(null);
+      return client.from("tracking_links")
+        .select("*")
+        .eq("slug", slug)
+        .maybeSingle()
+        .then(function (res) { return mapLink(unwrap(res)); });
     },
 
     /* Ensures the slug is unique by appending -2, -3, ... if taken. */
     uniqueSlug: function (base, ignoreId) {
-      var links = this.getLinks();
+      if (!configured) return notConfigured();
       var slug = slugify(base);
-      var candidate = slug;
-      var n = 2;
-      function taken(s) {
-        return links.some(function (l) { return l.slug === s && l.id !== ignoreId; });
-      }
-      while (taken(candidate)) {
-        candidate = slug + "-" + n;
-        n += 1;
-      }
-      return candidate;
+      return client.from("tracking_links")
+        .select("id, slug")
+        .then(function (res) {
+          var links = unwrap(res);
+          var candidate = slug;
+          var n = 2;
+          function taken(s) {
+            return links.some(function (l) { return l.slug === s && l.id !== ignoreId; });
+          }
+          while (taken(candidate)) {
+            candidate = slug + "-" + n;
+            n += 1;
+          }
+          return candidate;
+        });
     },
 
     addLink: function (data) {
-      var links = this.getLinks();
-      var link = {
-        id: uid(),
-        name: data.name,
-        slug: this.uniqueSlug(data.slug || data.name),
-        landing: {
+      if (!configured) return notConfigured();
+      return this.uniqueSlug(data.slug || data.name).then(function (slug) {
+        return client.from("tracking_links").insert({
+          name: data.name,
+          slug: slug,
           eyebrow: data.landing && data.landing.eyebrow || "",
           headline: data.landing && data.landing.headline || "",
           subtext: data.landing && data.landing.subtext || ""
-        },
-        visits: 0,
-        createdAt: new Date().toISOString()
-      };
-      links.push(link);
-      write(LINKS_KEY, links);
-      return link;
+        }).select().single();
+      }).then(function (res) { return mapLink(unwrap(res)); });
     },
 
     updateLink: function (id, patch) {
-      var links = this.getLinks();
-      var link = links.find(function (l) { return l.id === id; });
-      if (!link) return null;
-      if (patch.name !== undefined) link.name = patch.name;
-      if (patch.slug !== undefined) link.slug = this.uniqueSlug(patch.slug, id);
-      if (patch.landing !== undefined) {
-        link.landing.eyebrow = patch.landing.eyebrow || "";
-        link.landing.headline = patch.landing.headline || "";
-        link.landing.subtext = patch.landing.subtext || "";
-      }
-      write(LINKS_KEY, links);
-      return link;
+      if (!configured) return notConfigured();
+      return this.uniqueSlug(patch.slug || patch.name, id).then(function (slug) {
+        return client.from("tracking_links").update({
+          name: patch.name,
+          slug: slug,
+          eyebrow: patch.landing && patch.landing.eyebrow || "",
+          headline: patch.landing && patch.landing.headline || "",
+          subtext: patch.landing && patch.landing.subtext || ""
+        }).eq("id", id).select().single();
+      }).then(function (res) { return mapLink(unwrap(res)); });
     },
 
     deleteLink: function (id) {
-      write(LINKS_KEY, this.getLinks().filter(function (l) { return l.id !== id; }));
+      if (!configured) return notConfigured();
+      return client.from("tracking_links").delete().eq("id", id)
+        .then(function (res) { return unwrap(res); });
     },
 
+    /* Fire-and-forget visit counter (anonymous visitors). */
     recordVisit: function (slug) {
-      var links = this.getLinks();
-      var link = links.find(function (l) { return l.slug === slug; });
-      if (!link) return;
-      link.visits = (link.visits || 0) + 1;
-      write(LINKS_KEY, links);
+      if (!configured) return Promise.resolve();
+      return client.rpc("increment_visits", { p_slug: slug })
+        .then(function (res) {
+          if (res.error) console.error("Starzey/Supabase:", res.error.message);
+        });
     },
 
     /* Public landing URL for a link (query-param routing so it works
-       on any static host; swap for /l/{slug} rewrites in production). */
+       on any static host; swap for /l/{slug} rewrites if desired). */
     linkUrl: function (link) {
       return location.origin + "/?t=" + encodeURIComponent(link.slug);
     },
@@ -122,23 +229,34 @@
     /* ---------- Leads ---------- */
 
     getLeads: function () {
-      return read(LEADS_KEY);
+      if (!configured) return Promise.resolve([]);
+      return client.from("leads")
+        .select("*")
+        .order("created_at", { ascending: true })
+        .then(function (res) { return unwrap(res).map(mapLead); });
     },
 
     addLead: function (lead) {
-      var leads = this.getLeads();
-      lead.id = uid();
-      leads.push(lead);
-      write(LEADS_KEY, leads);
-      return lead;
+      if (!configured) return notConfigured();
+      return client.from("leads").insert({
+        link_slug: lead.linkSlug,
+        address: lead.address,
+        timeline: lead.timeline,
+        agent: lead.agent,
+        reason: lead.reason,
+        condition: lead.condition,
+        occupancy: lead.occupancy,
+        full_name: lead.fullName,
+        phone: lead.phone,
+        email: lead.email,
+        phone_valid: !!lead.phoneValid
+      }).then(function (res) { return unwrap(res); });
     },
 
     deleteLead: function (id) {
-      write(LEADS_KEY, this.getLeads().filter(function (l) { return l.id !== id; }));
-    },
-
-    leadsForSlug: function (slug) {
-      return this.getLeads().filter(function (l) { return l.linkSlug === slug; });
+      if (!configured) return notConfigured();
+      return client.from("leads").delete().eq("id", id)
+        .then(function (res) { return unwrap(res); });
     },
 
     slugify: slugify

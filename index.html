@@ -657,6 +657,8 @@
   </main>
 </div>
 
+<script src="/assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/assets/store.js"></script>
 <script>
 (function () {
@@ -666,15 +668,15 @@
    * Tracking link support.
    * Landing pages are reached via /?t={slug}. The slug identifies a
    * tracking link created in the admin, whose custom copy (eyebrow,
-   * headline, subtext) is applied below. &preview=1 skips the visit
-   * counter so admin previews don't inflate stats.
+   * headline, subtext) is fetched from Supabase and applied below.
+   * &preview=1 skips the visit counter so admin previews don't
+   * inflate stats.
    * ---------------------------------------------------------------- */
   var params = new URLSearchParams(location.search);
   var linkSlug = params.get("t") || null;
   var isPreview = params.get("preview") === "1";
-  var trackingLink = linkSlug ? StarzeyStore.getLinkBySlug(linkSlug) : null;
 
-  if (trackingLink) {
+  function applyLanding(trackingLink) {
     var landing = trackingLink.landing || {};
     if (landing.eyebrow) {
       document.getElementById("heroEyebrow").textContent = landing.eyebrow;
@@ -699,8 +701,14 @@
     }
   }
 
-  if (trackingLink && !isPreview) {
-    StarzeyStore.recordVisit(linkSlug);
+  if (linkSlug) {
+    StarzeyStore.getLinkBySlug(linkSlug).then(function (trackingLink) {
+      if (!trackingLink) return;
+      applyLanding(trackingLink);
+      if (!isPreview) StarzeyStore.recordVisit(linkSlug);
+    }).catch(function (err) {
+      console.error("Tracking link lookup failed:", err);
+    });
   }
 
   /* ------------------------------------------------------------------
@@ -837,9 +845,11 @@
     lead.phoneValid = true;
     lead.createdAt = new Date().toISOString();
 
-    // TODO: Replace with a Supabase insert into the "leads" table.
-    if (!isPreview) {
-      StarzeyStore.addLead(JSON.parse(JSON.stringify(lead)));
+    /* Saved to the Supabase "leads" table (public-insert RLS policy). */
+    if (!isPreview && StarzeyStore.isConfigured()) {
+      StarzeyStore.addLead(lead).catch(function (err) {
+        console.error("Lead save failed:", err);
+      });
     }
     console.log("Lead captured:", JSON.parse(JSON.stringify(lead)));
 

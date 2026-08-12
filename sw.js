@@ -2,7 +2,7 @@
  * page fast with a stale-while-revalidate strategy for assets and a
  * network-first strategy for pages (so fresh content wins online, but
  * everything still opens offline). */
-var CACHE = "starzey-v1";
+var CACHE = "starzey-v2";
 
 var SHELL = [
   "/",
@@ -13,8 +13,11 @@ var SHELL = [
   "/admin/trackinglinks/index.html",
   "/admin/leads/",
   "/admin/leads/index.html",
+  "/admin/login/",
+  "/admin/login/index.html",
   "/assets/admin.css",
   "/assets/store.js",
+  "/assets/config.js",
   "/assets/icon.svg",
   "/manifest.webmanifest"
 ];
@@ -66,10 +69,14 @@ self.addEventListener("fetch", function (event) {
     return;
   }
 
-  /* Same-origin assets + Google Fonts: stale-while-revalidate. */
+  /* Never intercept Supabase API/auth traffic. */
+  if (url.hostname.endsWith(".supabase.co")) return;
+
+  /* Same-origin assets, Google Fonts, supabase-js CDN: stale-while-revalidate. */
   var cacheable = url.origin === location.origin ||
                   url.hostname === "fonts.googleapis.com" ||
-                  url.hostname === "fonts.gstatic.com";
+                  url.hostname === "fonts.gstatic.com" ||
+                  url.hostname === "cdn.jsdelivr.net";
   if (!cacheable) return;
 
   event.respondWith(
