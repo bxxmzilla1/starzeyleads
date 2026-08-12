@@ -33,6 +33,11 @@ body {
   line-height: 1.6;
 }
 
+/* Prevents a flash of protected content before the session check
+   completes; the page reveals itself once auth is confirmed. */
+body.auth-loading .app,
+body.auth-loading .auth-wrap { visibility: hidden; }
+
 /* ---------- App layout: sidebar + main ---------- */
 .app {
   display: grid;

@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/admin.css">
 </head>
-<body>
+<body class="auth-loading">
 
 <div class="auth-wrap">
   <div class="auth-card">
@@ -78,9 +78,14 @@
     authSubmit.disabled = true;
   }
 
-  /* Already signed in → straight to the dashboard. */
+  /* Already signed in → straight to the dashboard (the form stays
+     hidden until the session check completes, to avoid a flash). */
   StarzeyStore.getSession().then(function (session) {
-    if (session) location.href = "/admin/";
+    if (session) {
+      location.href = "/admin/";
+      return;
+    }
+    document.body.classList.remove("auth-loading");
   });
 
   function setMode(next) {
