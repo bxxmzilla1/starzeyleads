@@ -50,6 +50,11 @@ body.auth-loading .auth-wrap { visibility: hidden; }
   display: flex;
   flex-direction: column;
   gap: 30px;
+  /* Stays put while the page body scrolls. */
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .logo {
@@ -114,8 +119,10 @@ body.auth-loading .auth-wrap { visibility: hidden; }
 .nav a.active svg { color: var(--primary); }
 .nav a svg { flex-shrink: 0; color: currentColor; }
 
+/* Sign out lives in its own group, pinned to the sidebar's bottom. */
+.nav-bottom { margin-top: auto; }
+
 .sidebar-foot {
-  margin-top: auto;
   padding: 0 8px;
   font-size: 0.78rem;
   color: var(--ink-soft);
@@ -668,9 +675,13 @@ tr:last-child td { border-bottom: none; }
     gap: 14px;
     padding: 16px;
     flex-wrap: wrap;
+    position: static;
+    height: auto;
+    overflow: visible;
   }
 
   .nav { flex-direction: row; flex-wrap: wrap; }
+  .nav-bottom { margin-top: 0; }
   .nav a { padding: 9px 13px; font-size: 0.88rem; }
   .sidebar-foot { display: none; }
   .main { padding: 10px 16px 48px; }
