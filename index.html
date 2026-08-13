@@ -490,6 +490,7 @@
     <!-- Hero copy -->
     <section class="hero-copy">
       <h1 id="heroHeadline">If your home is not sold in <span class="hl">30 days</span>, you don't pay us — even after it sells</h1>
+      <ul class="trust-list" id="heroBullets" hidden></ul>
     </section>
 
     <!-- Form card -->
@@ -595,6 +596,27 @@
     var subtextEl = document.getElementById("heroSubtext");
     if (landing.subtext && subtextEl) {
       subtextEl.textContent = landing.subtext;
+    }
+
+    /* Custom bullet points: one per line, rendered with check chips. */
+    var lines = (landing.bullets || "").split("\n")
+      .map(function (line) { return line.trim(); })
+      .filter(Boolean);
+
+    if (lines.length) {
+      var list = document.getElementById("heroBullets");
+      list.innerHTML = "";
+      lines.forEach(function (text) {
+        var li = document.createElement("li");
+        var chip = document.createElement("span");
+        chip.className = "check-chip";
+        chip.setAttribute("aria-hidden", "true");
+        chip.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+        li.appendChild(chip);
+        li.appendChild(document.createTextNode(text));
+        list.appendChild(li);
+      });
+      list.hidden = false;
     }
   }
 

@@ -43,7 +43,8 @@
       landing: {
         eyebrow: row.eyebrow || "",
         headline: row.headline || "",
-        subtext: row.subtext || ""
+        subtext: row.subtext || "",
+        bullets: row.bullets || ""
       },
       visits: row.visits || 0,
       createdAt: row.created_at
@@ -190,7 +191,8 @@
           slug: slug,
           eyebrow: data.landing && data.landing.eyebrow || "",
           headline: data.landing && data.landing.headline || "",
-          subtext: data.landing && data.landing.subtext || ""
+          subtext: data.landing && data.landing.subtext || "",
+          bullets: data.landing && data.landing.bullets || ""
         }).select().single();
       }).then(function (res) { return mapLink(unwrap(res)); });
     },
@@ -205,6 +207,7 @@
           update.eyebrow = patch.landing.eyebrow || "";
           update.headline = patch.landing.headline || "";
           update.subtext = patch.landing.subtext || "";
+          update.bullets = patch.landing.bullets || "";
         }
         return client.from("tracking_links").update(update)
           .eq("id", id).select().single();

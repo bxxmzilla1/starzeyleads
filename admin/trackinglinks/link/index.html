@@ -114,6 +114,12 @@
         <textarea id="editSubtext" placeholder="Answer a few quick questions about your home and we'll put together a personalized value report — no cost, no pressure, no obligation."></textarea>
       </div>
 
+      <div class="field">
+        <label for="editBullets">Bullet points under the title <span class="opt">(optional, one per line)</span></label>
+        <textarea id="editBullets" placeholder="Sold in 30 days or you don't pay&#10;Local experts, no pressure&#10;Your info stays private"></textarea>
+        <div class="field-hint">Each line becomes a bullet with a check mark under the landing page headline.</div>
+      </div>
+
       <div class="row-actions">
         <button type="button" class="btn btn-primary" id="saveSettings">Save changes</button>
         <button type="button" class="btn btn-danger" id="deleteLink">Delete link</button>
@@ -225,6 +231,7 @@
   var editEyebrow = document.getElementById("editEyebrow");
   var editHeadline = document.getElementById("editHeadline");
   var editSubtext = document.getElementById("editSubtext");
+  var editBullets = document.getElementById("editBullets");
   var saveSettings = document.getElementById("saveSettings");
 
   /* Filled once on load and after saving — never during the 10s
@@ -235,6 +242,7 @@
     editEyebrow.value = link.landing.eyebrow || "";
     editHeadline.value = link.landing.headline || "";
     editSubtext.value = link.landing.subtext || "";
+    editBullets.value = link.landing.bullets || "";
   }
 
   function flagInvalid(input) {
@@ -262,7 +270,8 @@
       landing: {
         eyebrow: editEyebrow.value.trim(),
         headline: editHeadline.value.trim(),
-        subtext: editSubtext.value.trim()
+        subtext: editSubtext.value.trim(),
+        bullets: editBullets.value.trim()
       }
     }).then(function (link) {
       currentLink = link;

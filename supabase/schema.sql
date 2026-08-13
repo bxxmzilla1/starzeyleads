@@ -12,9 +12,13 @@ create table if not exists public.tracking_links (
   eyebrow text not null default '',
   headline text not null default '',
   subtext text not null default '',
+  bullets text not null default '',
   visits integer not null default 0,
   created_at timestamptz not null default now()
 );
+
+-- Upgrade for databases created before custom bullet points were added.
+alter table public.tracking_links add column if not exists bullets text not null default '';
 
 create table if not exists public.leads (
   id uuid primary key default gen_random_uuid(),
