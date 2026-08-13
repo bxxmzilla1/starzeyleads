@@ -202,12 +202,20 @@
   function refresh() {
     return Promise.all([
       StarzeyStore.getLinks(),
-      StarzeyStore.getLeads()
+      StarzeyStore.getLeads(),
+      StarzeyStore.getAppSettings()
     ]).then(function (results) {
-      var snapshot = JSON.stringify(results);
+      /* "Reset all stats" stamps stats_reset_at: leads captured before
+         it are kept in the Leads section but no longer counted here. */
+      var resetAt = results[2].statsResetAt;
+      var leads = resetAt
+        ? results[1].filter(function (l) { return l.createdAt > resetAt; })
+        : results[1];
+
+      var snapshot = JSON.stringify([results[0], leads]);
       if (snapshot === lastSnapshot) return;
       lastSnapshot = snapshot;
-      render(results[0], results[1]);
+      render(results[0], leads);
     });
   }
 

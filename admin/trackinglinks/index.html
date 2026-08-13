@@ -102,6 +102,7 @@
 <script src="/assets/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/assets/store.js"></script>
+<script src="/assets/dialog.js"></script>
 <script>
 (function () {
   "use strict";
@@ -222,13 +223,23 @@
   var lastSnapshot = null;
 
   function refresh() {
-    return Promise.all([StarzeyStore.getLinks(), StarzeyStore.getLeads()])
-      .then(function (results) {
-        var snapshot = JSON.stringify(results);
+    return Promise.all([
+      StarzeyStore.getLinks(),
+      StarzeyStore.getLeads(),
+      StarzeyStore.getAppSettings()
+    ]).then(function (results) {
+        /* Leads captured before the last "Reset all stats" are kept in
+           the Leads section but no longer counted here. */
+        var resetAt = results[2].statsResetAt;
+        var leads = resetAt
+          ? results[1].filter(function (l) { return l.createdAt > resetAt; })
+          : results[1];
+
+        var snapshot = JSON.stringify([results[0], leads]);
         if (snapshot === lastSnapshot) return;
         lastSnapshot = snapshot;
         allLinks = results[0];
-        allLeads = results[1];
+        allLeads = leads;
         render();
       });
   }
@@ -247,14 +258,20 @@
         });
         break;
       case "delete":
-        if (confirm('Delete "' + link.name + '"? Its leads are kept, but the link will stop working.')) {
+        StarzeyDialog.confirm({
+          title: "Delete this tracking link?",
+          message: '"' + link.name + '" will stop working anywhere it was shared. Its leads are kept.',
+          confirmText: "Delete link",
+          danger: true
+        }).then(function (ok) {
+          if (!ok) return;
           StarzeyStore.deleteLink(link.id).then(function () {
             showToast("Link deleted");
             return refresh();
           }).catch(function (err) {
             showToast(err.message || "Couldn't delete the link");
           });
-        }
+        });
         break;
     }
   });
@@ -263,20 +280,27 @@
   var resetAllBtn = document.getElementById("resetAllStats");
 
   resetAllBtn.addEventListener("click", function () {
-    if (!confirm("Reset the stats of ALL tracking links? Visits, funnel progress, and visitor sessions go back to zero for every link. Leads are kept.")) return;
+    StarzeyDialog.confirm({
+      title: "Reset the stats of all tracking links?",
+      message: "Visits, funnel progress, visitor sessions, and dashboard stats go back to zero for every link. Captured leads stay in the Leads section.",
+      confirmText: "Reset all stats",
+      danger: true
+    }).then(function (ok) {
+      if (!ok) return;
 
-    resetAllBtn.disabled = true;
-    resetAllBtn.textContent = "Resetting…";
+      resetAllBtn.disabled = true;
+      resetAllBtn.textContent = "Resetting…";
 
-    StarzeyStore.resetAllLinkStats().then(function () {
-      lastSnapshot = null;
-      showToast("All stats reset");
-      return refresh();
-    }).catch(function (err) {
-      showToast(err.message || "Couldn't reset the stats");
-    }).finally(function () {
-      resetAllBtn.disabled = false;
-      resetAllBtn.textContent = "Reset all stats";
+      StarzeyStore.resetAllLinkStats().then(function () {
+        lastSnapshot = null;
+        showToast("All stats reset");
+        return refresh();
+      }).catch(function (err) {
+        showToast(err.message || "Couldn't reset the stats");
+      }).finally(function () {
+        resetAllBtn.disabled = false;
+        resetAllBtn.textContent = "Reset all stats";
+      });
     });
   });
 

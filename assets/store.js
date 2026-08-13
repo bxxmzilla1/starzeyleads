@@ -234,14 +234,17 @@
       });
     },
 
-    /* Resets the stats of every tracking link at once. Leads are
-       never touched. */
+    /* Resets the stats of every tracking link at once. Lead records
+       are never deleted; stats_reset_at excludes existing leads from
+       dashboard and per-link lead counts from now on. */
     resetAllLinkStats: function () {
       if (!configured) return notConfigured();
+      var now = new Date().toISOString();
       return Promise.all([
         client.from("tracking_links").update({ visits: 0 }).gte("visits", 0),
         client.from("funnel_events").delete().neq("session_id", ""),
-        client.from("link_visits").delete().neq("visitor_key", "")
+        client.from("link_visits").delete().neq("visitor_key", ""),
+        client.from("app_settings").upsert({ id: 1, stats_reset_at: now, updated_at: now })
       ]).then(function (results) {
         results.forEach(function (res) { unwrap(res); });
       });
@@ -305,7 +308,7 @@
     /* ---------- App-wide settings ---------- */
 
     getAppSettings: function () {
-      var defaults = { mainLinkSlug: "" };
+      var defaults = { mainLinkSlug: "", statsResetAt: null };
       if (!configured) return Promise.resolve(defaults);
       return client.from("app_settings")
         .select("*")
@@ -314,7 +317,10 @@
         .then(function (res) {
           var row = unwrap(res);
           if (!row) return defaults;
-          return { mainLinkSlug: row.main_link_slug || "" };
+          return {
+            mainLinkSlug: row.main_link_slug || "",
+            statsResetAt: row.stats_reset_at || null
+          };
         });
     },
 

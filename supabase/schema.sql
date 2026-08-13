@@ -69,11 +69,16 @@ where id = 1 and headline = '';
 -- App-wide settings, edited in the admin's "Settings" section.
 -- main_link_slug: the tracking link applied when visitors hit the
 -- bare domain (no ?t= parameter), so they are still tracked.
+-- stats_reset_at: leads created before this moment are excluded from
+-- dashboard/tracking-link stats (the lead records themselves are kept).
 create table if not exists public.app_settings (
   id integer primary key default 1 check (id = 1),
   main_link_slug text,
+  stats_reset_at timestamptz,
   updated_at timestamptz not null default now()
 );
+
+alter table public.app_settings add column if not exists stats_reset_at timestamptz;
 
 insert into public.app_settings (id) values (1)
 on conflict (id) do nothing;

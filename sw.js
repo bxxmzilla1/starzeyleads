@@ -2,7 +2,7 @@
  * page fast with a stale-while-revalidate strategy for assets and a
  * network-first strategy for pages (so fresh content wins online, but
  * everything still opens offline). */
-var CACHE = "starzey-v8";
+var CACHE = "starzey-v9";
 
 var SHELL = [
   "/",
@@ -23,6 +23,7 @@ var SHELL = [
   "/admin/login/index.html",
   "/assets/admin.css",
   "/assets/store.js",
+  "/assets/dialog.js",
   "/assets/config.js",
   "/assets/icon.svg",
   "/manifest.webmanifest"

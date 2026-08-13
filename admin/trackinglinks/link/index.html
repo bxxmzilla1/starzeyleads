@@ -135,6 +135,7 @@
 <script src="/assets/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/assets/store.js"></script>
+<script src="/assets/dialog.js"></script>
 <script>
 (function () {
   "use strict";
@@ -255,33 +256,46 @@
 
   resetStats.addEventListener("click", function () {
     if (!currentLink) return;
-    if (!confirm('Reset all stats for "' + currentLink.name + '"? Visits, funnel progress, and visitor sessions go back to zero. Leads are kept.')) return;
+    StarzeyDialog.confirm({
+      title: 'Reset all stats for "' + currentLink.name + '"?',
+      message: "Visits, funnel progress, and visitor sessions go back to zero. Captured leads are kept.",
+      confirmText: "Reset stats",
+      danger: true
+    }).then(function (ok) {
+      if (!ok) return;
 
-    resetStats.disabled = true;
-    resetStats.textContent = "Resetting…";
+      resetStats.disabled = true;
+      resetStats.textContent = "Resetting…";
 
-    StarzeyStore.resetLinkStats(currentLink.id, currentLink.slug).then(function () {
-      lastSnapshot = null;
-      sessionsLimit = SESSIONS_PAGE;
-      showToast("Stats reset");
-      return refresh();
-    }).catch(function (err) {
-      showToast(err.message || "Couldn't reset the stats");
-    }).finally(function () {
-      resetStats.disabled = false;
-      resetStats.textContent = "Reset stats";
+      StarzeyStore.resetLinkStats(currentLink.id, currentLink.slug).then(function () {
+        lastSnapshot = null;
+        sessionsLimit = SESSIONS_PAGE;
+        showToast("Stats reset");
+        return refresh();
+      }).catch(function (err) {
+        showToast(err.message || "Couldn't reset the stats");
+      }).finally(function () {
+        resetStats.disabled = false;
+        resetStats.textContent = "Reset stats";
+      });
     });
   });
 
   document.getElementById("deleteLink").addEventListener("click", function () {
     if (!currentLink) return;
-    if (confirm('Delete "' + currentLink.name + '"? Its leads are kept, but the link will stop working.')) {
+    StarzeyDialog.confirm({
+      title: "Delete this tracking link?",
+      message: '"' + currentLink.name + '" will stop working anywhere it was shared. Its leads are kept.',
+      confirmText: "Delete link",
+      danger: true
+    }).then(function (ok) {
+      if (!ok) return;
       StarzeyStore.deleteLink(currentLink.id).then(function () {
         location.href = "/admin/trackinglinks/";
       }).catch(function (err) {
         showToast(err.message || "Couldn't delete the link");
       });
-    }
+    });
   });
 
   /* ---------- Funnel progress ---------- */
