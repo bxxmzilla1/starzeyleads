@@ -8,7 +8,7 @@ trackable landing pages.
 | URL | Purpose |
 |---|---|
 | `/` | Public landing page (2-step funnel: full name, phone). Reached via tracking links like `/?t=my-slug` |
-| `/admin/` | Dashboard — live visitors, links, visits, leads, conversion (sign-in required) |
+| `/admin/` | Dashboard — links, visits, leads, conversion (sign-in required) |
 | `/admin/trackinglinks/` | Create/manage tracking links and watch per-link funnel progress |
 | `/admin/landingpage/` | Edit the landing page content (applies to every link) with a live desktop/mobile preview |
 | `/admin/leads/` | All captured leads, CSV export |

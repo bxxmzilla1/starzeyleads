@@ -653,15 +653,6 @@
   /* Visitor landed on the form (viewing step 1). */
   trackStep(0, "started");
 
-  /* Live presence heartbeat so the dashboard can count visitors
-     currently on the page (seen within the last 30 seconds). */
-  if (!isPreview && StarzeyStore.isConfigured()) {
-    StarzeyStore.heartbeat(sessionId, linkSlug);
-    setInterval(function () {
-      if (!document.hidden) StarzeyStore.heartbeat(sessionId, linkSlug);
-    }, 10000);
-  }
-
   /* ------------------------------------------------------------------
    * Geolocation (IPinfo via /api/geo) — resolved in the background,
    * attached to the lead at submit time. Best-effort only.

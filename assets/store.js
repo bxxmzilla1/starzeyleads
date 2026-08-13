@@ -307,36 +307,6 @@
       }).then(function (res) { return unwrap(res); });
     },
 
-    /* ---------- Live presence ---------- */
-
-    /* Fire-and-forget heartbeat: one row per visitor session. */
-    heartbeat: function (sessionId, linkSlug) {
-      if (!configured) return Promise.resolve();
-      return client.from("presence").upsert({
-        session_id: sessionId,
-        link_slug: linkSlug || null,
-        last_seen: new Date().toISOString()
-      }).then(function (res) {
-        if (res.error) console.error("Starzey/Supabase:", res.error.message);
-      });
-    },
-
-    /* Visitors seen in the last 30 seconds. */
-    getLiveVisitorCount: function () {
-      if (!configured) return Promise.resolve(0);
-      var cutoff = new Date(Date.now() - 30000).toISOString();
-      return client.from("presence")
-        .select("session_id", { count: "exact", head: true })
-        .gt("last_seen", cutoff)
-        .then(function (res) {
-          if (res.error) {
-            console.error("Starzey/Supabase:", res.error.message);
-            return 0;
-          }
-          return res.count || 0;
-        });
-    },
-
     /* ---------- Funnel progress events ---------- */
 
     /* Fire-and-forget: one row per step a visitor completes. */

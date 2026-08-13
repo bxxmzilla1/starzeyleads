@@ -59,13 +59,8 @@ create table if not exists public.landing_settings (
 insert into public.landing_settings (id) values (1)
 on conflict (id) do nothing;
 
--- Live presence: landing pages heartbeat one row per visitor session;
--- the dashboard counts rows seen in the last 30 seconds.
-create table if not exists public.presence (
-  session_id text primary key,
-  link_slug text,
-  last_seen timestamptz not null default now()
-);
+-- Cleanup: the live-presence feature was removed.
+drop table if exists public.presence;
 
 -- One row per funnel step a visitor completes on the landing page.
 -- session_id groups the events of a single visitor's attempt.
@@ -88,7 +83,6 @@ alter table public.tracking_links enable row level security;
 alter table public.leads enable row level security;
 alter table public.funnel_events enable row level security;
 alter table public.landing_settings enable row level security;
-alter table public.presence enable row level security;
 
 -- Landing settings: anyone may read (the public landing page needs
 -- them), only signed-in users may edit.
@@ -105,23 +99,6 @@ create policy "auth insert landing settings"
 drop policy if exists "auth update landing settings" on public.landing_settings;
 create policy "auth update landing settings"
   on public.landing_settings for update to authenticated
-  using (true);
-
--- Presence: anonymous visitors heartbeat their own session row,
--- only signed-in users may read counts.
-drop policy if exists "public insert presence" on public.presence;
-create policy "public insert presence"
-  on public.presence for insert
-  with check (true);
-
-drop policy if exists "public update presence" on public.presence;
-create policy "public update presence"
-  on public.presence for update
-  using (true);
-
-drop policy if exists "auth read presence" on public.presence;
-create policy "auth read presence"
-  on public.presence for select to authenticated
   using (true);
 
 -- Tracking links: anyone may read (landing pages need the custom copy),
