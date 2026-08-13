@@ -104,8 +104,10 @@
 
       <div class="row-actions">
         <button type="button" class="btn btn-primary" id="saveSettings">Save changes</button>
+        <button type="button" class="btn btn-ghost" id="resetStats">Reset stats</button>
         <button type="button" class="btn btn-danger" id="deleteLink">Delete link</button>
       </div>
+      <p class="field-hint" style="margin-top:12px">Reset stats clears this link's visits, funnel progress, and visitor sessions. Captured leads are never deleted.</p>
       <p class="field-hint" style="margin-top:12px">The landing page content itself is edited in the <a href="/admin/landingpage/" style="color:var(--primary-deep);font-weight:700">Landing page</a> section and applies to every link automatically.</p>
     </div>
 
@@ -242,6 +244,27 @@
     }).finally(function () {
       saveSettings.disabled = false;
       saveSettings.textContent = "Save changes";
+    });
+  });
+
+  var resetStats = document.getElementById("resetStats");
+
+  resetStats.addEventListener("click", function () {
+    if (!currentLink) return;
+    if (!confirm('Reset all stats for "' + currentLink.name + '"? Visits, funnel progress, and visitor sessions go back to zero. Leads are kept.')) return;
+
+    resetStats.disabled = true;
+    resetStats.textContent = "Resetting…";
+
+    StarzeyStore.resetLinkStats(currentLink.id, currentLink.slug).then(function () {
+      lastSnapshot = null;
+      showToast("Stats reset");
+      return refresh();
+    }).catch(function (err) {
+      showToast(err.message || "Couldn't reset the stats");
+    }).finally(function () {
+      resetStats.disabled = false;
+      resetStats.textContent = "Reset stats";
     });
   });
 

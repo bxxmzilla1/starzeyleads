@@ -220,6 +220,24 @@
         .then(function (res) { return unwrap(res); });
     },
 
+    /* Resets a link's stats: visit counter, visit dedupe rows, and
+       funnel/session history. Leads are never touched. */
+    resetLinkStats: function (id, slug) {
+      if (!configured) return notConfigured();
+      return client.from("tracking_links")
+        .update({ visits: 0 })
+        .eq("id", id)
+        .then(function (res) {
+          unwrap(res);
+          return client.from("link_visits").delete().eq("link_slug", slug);
+        })
+        .then(function (res) {
+          unwrap(res);
+          return client.from("funnel_events").delete().eq("link_slug", slug);
+        })
+        .then(function (res) { return unwrap(res); });
+    },
+
     /* Fire-and-forget visit counter (anonymous visitors). Each
        visitorKey (IP, or device id fallback) counts once per link. */
     recordVisit: function (slug, visitorKey) {

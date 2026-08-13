@@ -172,6 +172,12 @@ create table if not exists public.link_visits (
 
 alter table public.link_visits enable row level security;
 
+-- Admins may clear the dedupe rows when resetting a link's stats.
+drop policy if exists "auth delete link visits" on public.link_visits;
+create policy "auth delete link visits"
+  on public.link_visits for delete to authenticated
+  using (true);
+
 -- Replace the old unconditional counter.
 drop function if exists public.increment_visits(text);
 
