@@ -34,6 +34,10 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
         Tracking links
       </a>
+      <a href="/admin/landingpage/">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+        Landing page
+      </a>
       <a href="/admin/leads/">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Leads
@@ -52,7 +56,7 @@
   <main class="main">
     <div class="page-head">
       <h1>Tracking links</h1>
-      <p>Create a link for every campaign or channel. Open a link's page to edit it, customize its landing copy, preview it, and watch visitors move through the form.</p>
+      <p>Create a link for every campaign or channel. Open a link's page to edit it and watch visitors move through the form. Landing content is edited once in the Landing page section.</p>
     </div>
 
     <!-- Create form -->
@@ -206,9 +210,16 @@
       "</tbody></table></div>";
   }
 
+  /* Re-renders only when the data actually changed, so the 1-second
+     live refresh never flickers or interrupts button clicks. */
+  var lastSnapshot = null;
+
   function refresh() {
     return Promise.all([StarzeyStore.getLinks(), StarzeyStore.getLeads()])
       .then(function (results) {
+        var snapshot = JSON.stringify(results);
+        if (snapshot === lastSnapshot) return;
+        lastSnapshot = snapshot;
         allLinks = results[0];
         allLeads = results[1];
         render();
@@ -251,6 +262,14 @@
   StarzeyStore.requireAuth().then(function () {
     document.body.classList.remove("auth-loading");
     return refresh();
+  }).then(function () {
+    /* Live stats: re-pull every second while the tab is visible. */
+    var refreshing = false;
+    setInterval(function () {
+      if (document.hidden || refreshing) return;
+      refreshing = true;
+      refresh().catch(function () {}).then(function () { refreshing = false; });
+    }, 1000);
   });
 
   if ("serviceWorker" in navigator) {

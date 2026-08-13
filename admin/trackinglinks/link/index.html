@@ -34,6 +34,10 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
         Tracking links
       </a>
+      <a href="/admin/landingpage/">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+        Landing page
+      </a>
       <a href="/admin/leads/">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Leads
@@ -59,7 +63,7 @@
       <div class="row-actions" style="margin-top:12px">
         <button type="button" class="btn btn-ghost btn-small" id="copyLink">Copy link</button>
         <a class="btn btn-ghost btn-small" id="openLanding" href="/" target="_blank" rel="noopener">Open landing page</a>
-        <span class="pill" id="autoRefreshPill">Progress auto-refreshes every 10s</span>
+        <span class="pill" id="autoRefreshPill">Live · updates every second</span>
       </div>
     </div>
 
@@ -98,46 +102,11 @@
         </div>
       </div>
 
-      <div class="field">
-        <label for="editEyebrow">Custom eyebrow <span class="opt">(optional)</span></label>
-        <input type="text" id="editEyebrow" placeholder="Free home value report">
-      </div>
-
-      <div class="field">
-        <label for="editHeadline">Custom headline <span class="opt">(optional)</span></label>
-        <input type="text" id="editHeadline" placeholder="Find out what your home is *really worth* today">
-        <div class="field-hint">Wrap words in *asterisks* to give them the soft blue underline highlight.</div>
-      </div>
-
-      <div class="field">
-        <label for="editSubtext">Custom subtext <span class="opt">(optional)</span></label>
-        <textarea id="editSubtext" placeholder="Answer a few quick questions about your home and we'll put together a personalized value report — no cost, no pressure, no obligation."></textarea>
-      </div>
-
-      <div class="field">
-        <label for="editBullets">Bullet points under the title <span class="opt">(optional, one per line)</span></label>
-        <textarea id="editBullets" placeholder="Sold in 30 days or you don't pay&#10;Local experts, no pressure&#10;Your info stays private"></textarea>
-        <div class="field-hint">Each line becomes a bullet with a check mark under the landing page headline.</div>
-      </div>
-
       <div class="row-actions">
         <button type="button" class="btn btn-primary" id="saveSettings">Save changes</button>
         <button type="button" class="btn btn-danger" id="deleteLink">Delete link</button>
       </div>
-    </div>
-
-    <!-- Landing page preview -->
-    <div class="card">
-      <div class="preview-head">
-        <h2 style="margin-bottom:0">Landing page preview</h2>
-        <div class="device-toggle" role="group" aria-label="Preview device">
-          <button type="button" id="deviceDesktop" class="active">Desktop</button>
-          <button type="button" id="deviceMobile">Mobile</button>
-        </div>
-      </div>
-      <div class="preview-stage" id="previewStage">
-        <iframe id="previewFrame" title="Landing page preview"></iframe>
-      </div>
+      <p class="field-hint" style="margin-top:12px">The landing page content itself is edited in the <a href="/admin/landingpage/" style="color:var(--primary-deep);font-weight:700">Landing page</a> section and applies to every link automatically.</p>
     </div>
 
     <div class="card">
@@ -225,24 +194,16 @@
     });
   });
 
-  /* ---------- Settings (edit everything about this link) ---------- */
+  /* ---------- Settings (name + slug) ---------- */
   var editName = document.getElementById("editName");
   var editSlug = document.getElementById("editSlug");
-  var editEyebrow = document.getElementById("editEyebrow");
-  var editHeadline = document.getElementById("editHeadline");
-  var editSubtext = document.getElementById("editSubtext");
-  var editBullets = document.getElementById("editBullets");
   var saveSettings = document.getElementById("saveSettings");
 
-  /* Filled once on load and after saving — never during the 10s
+  /* Filled once on load and after saving — never during the live
      progress refresh, so typing is never clobbered. */
   function fillSettings(link) {
     editName.value = link.name;
     editSlug.value = link.slug;
-    editEyebrow.value = link.landing.eyebrow || "";
-    editHeadline.value = link.landing.headline || "";
-    editSubtext.value = link.landing.subtext || "";
-    editBullets.value = link.landing.bullets || "";
   }
 
   function flagInvalid(input) {
@@ -266,13 +227,7 @@
 
     StarzeyStore.updateLink(currentLink.id, {
       name: name,
-      slug: editSlug.value.trim() || name,
-      landing: {
-        eyebrow: editEyebrow.value.trim(),
-        headline: editHeadline.value.trim(),
-        subtext: editSubtext.value.trim(),
-        bullets: editBullets.value.trim()
-      }
+      slug: editSlug.value.trim() || name
     }).then(function (link) {
       currentLink = link;
       if (link.slug !== slug) {
@@ -281,7 +236,6 @@
       }
       renderHeader(link);
       fillSettings(link);
-      setPreviewSrc();
       showToast("Changes saved");
     }).catch(function (err) {
       showToast(err.message || "Couldn't save changes");
@@ -301,25 +255,6 @@
       });
     }
   });
-
-  /* ---------- Landing page preview (desktop / mobile) ---------- */
-  var previewStage = document.getElementById("previewStage");
-  var previewFrame = document.getElementById("previewFrame");
-  var deviceDesktop = document.getElementById("deviceDesktop");
-  var deviceMobile = document.getElementById("deviceMobile");
-
-  function setPreviewSrc() {
-    previewFrame.src = "/?t=" + encodeURIComponent(slug) + "&preview=1";
-  }
-
-  function setDevice(mobile) {
-    previewStage.classList.toggle("mobile", mobile);
-    deviceDesktop.classList.toggle("active", !mobile);
-    deviceMobile.classList.toggle("active", mobile);
-  }
-
-  deviceDesktop.addEventListener("click", function () { setDevice(false); });
-  deviceMobile.addEventListener("click", function () { setDevice(true); });
 
   /* ---------- Funnel progress ---------- */
 
@@ -417,8 +352,16 @@
       "</tbody></table></div>";
   }
 
+  /* Re-renders only when the data actually changed, so the 1-second
+     live refresh never flickers or interrupts interaction. */
+  var lastSnapshot = null;
+
   function refresh() {
     return Promise.all([loadLink(), StarzeyStore.getFunnelEvents(slug)]).then(function (results) {
+      var snapshot = JSON.stringify([currentLink && currentLink.visits, results[1]]);
+      if (snapshot === lastSnapshot) return;
+      lastSnapshot = snapshot;
+
       var sessions = buildSessions(results[1]);
       var completed = sessions.filter(function (s) { return s.maxIndex >= TOTAL_FORM_STEPS; }).length;
 
@@ -442,11 +385,13 @@
     return refresh();
   }).then(function () {
     if (currentLink) fillSettings(currentLink);
-    setPreviewSrc();
-    /* Live view: re-pull progress every 10 seconds while the tab is visible. */
+    /* Live view: re-pull progress every second while the tab is visible. */
+    var refreshing = false;
     setInterval(function () {
-      if (!document.hidden) refresh();
-    }, 10000);
+      if (document.hidden || refreshing) return;
+      refreshing = true;
+      refresh().catch(function () {}).then(function () { refreshing = false; });
+    }, 1000);
   });
 
   if ("serviceWorker" in navigator) {

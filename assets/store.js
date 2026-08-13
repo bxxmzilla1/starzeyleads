@@ -274,6 +274,69 @@
         .then(function (res) { return unwrap(res); });
     },
 
+    /* ---------- Global landing page settings ---------- */
+
+    getLandingSettings: function () {
+      var defaults = { eyebrow: "", headline: "", subtext: "", bullets: "" };
+      if (!configured) return Promise.resolve(defaults);
+      return client.from("landing_settings")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle()
+        .then(function (res) {
+          var row = unwrap(res);
+          if (!row) return defaults;
+          return {
+            eyebrow: row.eyebrow || "",
+            headline: row.headline || "",
+            subtext: row.subtext || "",
+            bullets: row.bullets || ""
+          };
+        });
+    },
+
+    saveLandingSettings: function (settings) {
+      if (!configured) return notConfigured();
+      return client.from("landing_settings").upsert({
+        id: 1,
+        eyebrow: settings.eyebrow || "",
+        headline: settings.headline || "",
+        subtext: settings.subtext || "",
+        bullets: settings.bullets || "",
+        updated_at: new Date().toISOString()
+      }).then(function (res) { return unwrap(res); });
+    },
+
+    /* ---------- Live presence ---------- */
+
+    /* Fire-and-forget heartbeat: one row per visitor session. */
+    heartbeat: function (sessionId, linkSlug) {
+      if (!configured) return Promise.resolve();
+      return client.from("presence").upsert({
+        session_id: sessionId,
+        link_slug: linkSlug || null,
+        last_seen: new Date().toISOString()
+      }).then(function (res) {
+        if (res.error) console.error("Starzey/Supabase:", res.error.message);
+      });
+    },
+
+    /* Visitors seen in the last 30 seconds. */
+    getLiveVisitorCount: function () {
+      if (!configured) return Promise.resolve(0);
+      var cutoff = new Date(Date.now() - 30000).toISOString();
+      return client.from("presence")
+        .select("session_id", { count: "exact", head: true })
+        .gt("last_seen", cutoff)
+        .then(function (res) {
+          if (res.error) {
+            console.error("Starzey/Supabase:", res.error.message);
+            return 0;
+          }
+          return res.count || 0;
+        });
+    },
+
     /* ---------- Funnel progress events ---------- */
 
     /* Fire-and-forget: one row per step a visitor completes. */

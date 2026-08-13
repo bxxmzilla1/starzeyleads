@@ -572,8 +572,7 @@
   var linkSlug = params.get("t") || null;
   var isPreview = params.get("preview") === "1";
 
-  function applyLanding(trackingLink) {
-    var landing = trackingLink.landing || {};
+  function applyLanding(landing) {
     var eyebrowEl = document.getElementById("heroEyebrow");
     if (landing.eyebrow && eyebrowEl) {
       eyebrowEl.textContent = landing.eyebrow;
@@ -620,14 +619,14 @@
     }
   }
 
-  if (linkSlug) {
-    StarzeyStore.getLinkBySlug(linkSlug).then(function (trackingLink) {
-      if (!trackingLink) return;
-      applyLanding(trackingLink);
-      if (!isPreview) StarzeyStore.recordVisit(linkSlug);
-    }).catch(function (err) {
-      console.error("Tracking link lookup failed:", err);
-    });
+  /* Global landing content (edited in the admin's "Landing page"
+     section) applies to every tracking link automatically. */
+  StarzeyStore.getLandingSettings().then(applyLanding).catch(function (err) {
+    console.error("Landing settings lookup failed:", err);
+  });
+
+  if (linkSlug && !isPreview) {
+    StarzeyStore.recordVisit(linkSlug);
   }
 
   /* ------------------------------------------------------------------
@@ -653,6 +652,15 @@
 
   /* Visitor landed on the form (viewing step 1). */
   trackStep(0, "started");
+
+  /* Live presence heartbeat so the dashboard can count visitors
+     currently on the page (seen within the last 30 seconds). */
+  if (!isPreview && StarzeyStore.isConfigured()) {
+    StarzeyStore.heartbeat(sessionId, linkSlug);
+    setInterval(function () {
+      if (!document.hidden) StarzeyStore.heartbeat(sessionId, linkSlug);
+    }, 10000);
+  }
 
   /* ------------------------------------------------------------------
    * Geolocation (IPinfo via /api/geo) — resolved in the background,

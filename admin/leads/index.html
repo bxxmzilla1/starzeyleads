@@ -34,6 +34,10 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
         Tracking links
       </a>
+      <a href="/admin/landingpage/">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+        Landing page
+      </a>
       <a href="/admin/leads/" class="active" aria-current="page">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Leads
@@ -106,6 +110,18 @@
       " · " + new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
   }
 
+  /* Full country name from an ISO code, e.g. "PH" -> "Philippines". */
+  var regionNames = null;
+  try { regionNames = new Intl.DisplayNames(["en"], { type: "region" }); } catch (e) {}
+
+  function countryName(code) {
+    if (!code) return "";
+    if (regionNames) {
+      try { return regionNames.of(code.toUpperCase()) || code; } catch (e) { return code; }
+    }
+    return code;
+  }
+
   function refresh() {
     return StarzeyStore.getLeads().then(function (leads) {
       allLeads = leads;
@@ -130,7 +146,7 @@
       "<th>Name</th><th>Phone</th><th>Location</th><th>Link</th><th>When</th><th></th>" +
       "</tr></thead><tbody>" +
       leads.map(function (lead) {
-        var loc = [lead.city, lead.country].filter(Boolean).join(", ");
+        var loc = [lead.city, countryName(lead.country)].filter(Boolean).join(", ");
         return "<tr>" +
           "<td><strong>" + esc(lead.fullName) + "</strong></td>" +
           "<td>" + esc(formatPhone(lead.phone)) + ' <span class="pill">Verified</span></td>' +
@@ -174,7 +190,10 @@
 
     var csv = columns.join(",") + "\n" +
       leads.map(function (lead) {
-        return columns.map(function (col) { return cell(lead[col]); }).join(",");
+        return columns.map(function (col) {
+          if (col === "country") return cell(countryName(lead.country));
+          return cell(lead[col]);
+        }).join(",");
       }).join("\n");
 
     var blob = new Blob([csv], { type: "text/csv;charset=utf-8" });

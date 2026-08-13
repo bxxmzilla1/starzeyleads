@@ -44,6 +44,29 @@ alter table public.leads add column if not exists country text;
 alter table public.leads add column if not exists city text;
 alter table public.leads add column if not exists ip text;
 
+-- Global landing page content, edited in the admin's "Landing page"
+-- section. A single row (id = 1) that every tracking link applies
+-- automatically.
+create table if not exists public.landing_settings (
+  id integer primary key default 1 check (id = 1),
+  eyebrow text not null default '',
+  headline text not null default '',
+  subtext text not null default '',
+  bullets text not null default '',
+  updated_at timestamptz not null default now()
+);
+
+insert into public.landing_settings (id) values (1)
+on conflict (id) do nothing;
+
+-- Live presence: landing pages heartbeat one row per visitor session;
+-- the dashboard counts rows seen in the last 30 seconds.
+create table if not exists public.presence (
+  session_id text primary key,
+  link_slug text,
+  last_seen timestamptz not null default now()
+);
+
 -- One row per funnel step a visitor completes on the landing page.
 -- session_id groups the events of a single visitor's attempt.
 create table if not exists public.funnel_events (
@@ -64,6 +87,42 @@ create index if not exists funnel_events_slug_idx
 alter table public.tracking_links enable row level security;
 alter table public.leads enable row level security;
 alter table public.funnel_events enable row level security;
+alter table public.landing_settings enable row level security;
+alter table public.presence enable row level security;
+
+-- Landing settings: anyone may read (the public landing page needs
+-- them), only signed-in users may edit.
+drop policy if exists "public read landing settings" on public.landing_settings;
+create policy "public read landing settings"
+  on public.landing_settings for select
+  using (true);
+
+drop policy if exists "auth insert landing settings" on public.landing_settings;
+create policy "auth insert landing settings"
+  on public.landing_settings for insert to authenticated
+  with check (true);
+
+drop policy if exists "auth update landing settings" on public.landing_settings;
+create policy "auth update landing settings"
+  on public.landing_settings for update to authenticated
+  using (true);
+
+-- Presence: anonymous visitors heartbeat their own session row,
+-- only signed-in users may read counts.
+drop policy if exists "public insert presence" on public.presence;
+create policy "public insert presence"
+  on public.presence for insert
+  with check (true);
+
+drop policy if exists "public update presence" on public.presence;
+create policy "public update presence"
+  on public.presence for update
+  using (true);
+
+drop policy if exists "auth read presence" on public.presence;
+create policy "auth read presence"
+  on public.presence for select to authenticated
+  using (true);
 
 -- Tracking links: anyone may read (landing pages need the custom copy),
 -- but only signed-in users may create/update/delete.
