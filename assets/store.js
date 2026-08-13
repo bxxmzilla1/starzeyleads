@@ -302,6 +302,31 @@
         .then(function (res) { return unwrap(res); });
     },
 
+    /* ---------- App-wide settings ---------- */
+
+    getAppSettings: function () {
+      var defaults = { mainLinkSlug: "" };
+      if (!configured) return Promise.resolve(defaults);
+      return client.from("app_settings")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle()
+        .then(function (res) {
+          var row = unwrap(res);
+          if (!row) return defaults;
+          return { mainLinkSlug: row.main_link_slug || "" };
+        });
+    },
+
+    saveAppSettings: function (settings) {
+      if (!configured) return notConfigured();
+      return client.from("app_settings").upsert({
+        id: 1,
+        main_link_slug: settings.mainLinkSlug || null,
+        updated_at: new Date().toISOString()
+      }).then(function (res) { return unwrap(res); });
+    },
+
     /* ---------- Global landing page settings ---------- */
 
     getLandingSettings: function () {

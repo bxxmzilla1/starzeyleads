@@ -201,6 +201,7 @@ input[type="text"],
 input[type="url"],
 input[type="email"],
 input[type="password"],
+select,
 textarea {
   width: 100%;
   font-family: inherit;
@@ -219,7 +220,9 @@ textarea { resize: vertical; min-height: 74px; }
 
 input::placeholder, textarea::placeholder { color: #9DB4CC; font-weight: 500; }
 
-input:focus, textarea:focus {
+select { cursor: pointer; }
+
+input:focus, select:focus, textarea:focus {
   border-color: var(--primary);
   background: #fff;
   box-shadow: 0 0 0 4px rgba(78, 134, 212, 0.16);

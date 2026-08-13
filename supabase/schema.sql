@@ -66,6 +66,18 @@ update public.landing_settings
 set headline = 'If your home is not sold in *30 days*, you don''t pay us — even after it sells'
 where id = 1 and headline = '';
 
+-- App-wide settings, edited in the admin's "Settings" section.
+-- main_link_slug: the tracking link applied when visitors hit the
+-- bare domain (no ?t= parameter), so they are still tracked.
+create table if not exists public.app_settings (
+  id integer primary key default 1 check (id = 1),
+  main_link_slug text,
+  updated_at timestamptz not null default now()
+);
+
+insert into public.app_settings (id) values (1)
+on conflict (id) do nothing;
+
 -- Cleanup: the live-presence feature was removed.
 drop table if exists public.presence;
 
@@ -90,6 +102,24 @@ alter table public.tracking_links enable row level security;
 alter table public.leads enable row level security;
 alter table public.funnel_events enable row level security;
 alter table public.landing_settings enable row level security;
+alter table public.app_settings enable row level security;
+
+-- App settings: anyone may read (the landing page checks the main
+-- domain tracking link anonymously), only signed-in users may edit.
+drop policy if exists "public read app settings" on public.app_settings;
+create policy "public read app settings"
+  on public.app_settings for select
+  using (true);
+
+drop policy if exists "auth insert app settings" on public.app_settings;
+create policy "auth insert app settings"
+  on public.app_settings for insert to authenticated
+  with check (true);
+
+drop policy if exists "auth update app settings" on public.app_settings;
+create policy "auth update app settings"
+  on public.app_settings for update to authenticated
+  using (true);
 
 -- Landing settings: anyone may read (the public landing page needs
 -- them), only signed-in users may edit.

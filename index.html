@@ -574,6 +574,15 @@
   var linkSlug = params.get("t") || null;
   var isPreview = params.get("preview") === "1";
 
+  /* Visitors who arrive at the bare domain (no ?t=) are attributed to
+     the "Main site domain tracking" link chosen in admin Settings. */
+  var linkSlugPromise = linkSlug
+    ? Promise.resolve(linkSlug)
+    : StarzeyStore.getAppSettings().then(function (settings) {
+        linkSlug = (settings && settings.mainLinkSlug) || null;
+        return linkSlug;
+      }).catch(function () { return null; });
+
   function applyLanding(landing) {
     var eyebrowEl = document.getElementById("heroEyebrow");
     if (landing.eyebrow && eyebrowEl) {
@@ -640,13 +649,16 @@
       : Date.now().toString(36) + Math.random().toString(36).slice(2);
 
   function trackStep(stepIndex, stepName, value) {
-    if (!linkSlug || isPreview || !StarzeyStore.isConfigured()) return;
-    StarzeyStore.recordFunnelEvent({
-      sessionId: sessionId,
-      linkSlug: linkSlug,
-      stepIndex: stepIndex,
-      step: stepName,
-      value: value || null
+    if (isPreview || !StarzeyStore.isConfigured()) return;
+    linkSlugPromise.then(function (slug) {
+      if (!slug) return;
+      StarzeyStore.recordFunnelEvent({
+        sessionId: sessionId,
+        linkSlug: slug,
+        stepIndex: stepIndex,
+        step: stepName,
+        value: value || null
+      });
     });
   }
 
@@ -680,9 +692,11 @@
 
   /* Count the visit only once per unique IP address (per link).
      Repeat loads and refreshes from the same IP are ignored. */
-  if (linkSlug && !isPreview) {
-    geoPromise.then(function (geo) {
-      StarzeyStore.recordVisit(linkSlug, (geo && geo.ip) || deviceId());
+  if (!isPreview) {
+    Promise.all([linkSlugPromise, geoPromise]).then(function (results) {
+      var slug = results[0];
+      if (!slug) return;
+      StarzeyStore.recordVisit(slug, (results[1] && results[1].ip) || deviceId());
     });
   }
 
@@ -699,6 +713,10 @@
     ip: null,
     createdAt: null
   };
+
+  /* Attribute the lead to the resolved link (covers the main-domain
+     fallback, which is looked up asynchronously). */
+  linkSlugPromise.then(function (slug) { lead.linkSlug = slug; });
 
   /* Ordered flow. First 2 count toward the progress bar. */
   var FLOW = ["name", "phone", "success"];

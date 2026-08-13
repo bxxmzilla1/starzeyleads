@@ -12,6 +12,7 @@ trackable landing pages.
 | `/admin/trackinglinks/` | Create/manage tracking links and watch per-link funnel progress |
 | `/admin/landingpage/` | Edit the landing page content (applies to every link) with a live desktop/mobile preview |
 | `/admin/leads/` | All captured leads, CSV export |
+| `/admin/settings/` | App-wide settings, e.g. the tracking link applied to direct main-domain visitors |
 | `/admin/login/` | Sign in / create account |
 
 ## Stack

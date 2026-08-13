@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Landing Page — Starzey Admin</title>
+<title>Settings — Starzey Admin</title>
 <meta name="theme-color" content="#EEF5FB">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
@@ -34,7 +34,7 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
         Tracking links
       </a>
-      <a href="/admin/landingpage/" class="active" aria-current="page">
+      <a href="/admin/landingpage/">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
         Landing page
       </a>
@@ -42,7 +42,7 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Leads
       </a>
-      <a href="/admin/settings/">
+      <a href="/admin/settings/" class="active" aria-current="page">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Settings
       </a>
@@ -59,55 +59,29 @@
 
   <main class="main">
     <div class="page-head">
-      <h1>Landing page</h1>
-      <p>Edit the landing page content once — every tracking link applies it automatically.</p>
+      <h1>Settings</h1>
+      <p>App-wide options that affect how visitors are tracked.</p>
     </div>
 
-    <!-- Content editor -->
+    <!-- Main site domain tracking -->
     <div class="card">
-      <h2>Content</h2>
+      <h2>Main site domain tracking</h2>
+      <p class="muted" style="font-size:0.88rem;margin-bottom:16px">
+        Visitors who open the main domain directly (without a tracking link) will be
+        counted and tracked through the link you pick here — visits, funnel progress,
+        and lead attribution included.
+      </p>
 
       <div class="field">
-        <label for="editEyebrow">Eyebrow <span class="opt">(optional)</span></label>
-        <input type="text" id="editEyebrow" placeholder="Free home value report">
-      </div>
-
-      <div class="field">
-        <label for="editHeadline">Headline <span class="opt">(optional — leave empty for the default)</span></label>
-        <input type="text" id="editHeadline" placeholder="If your home is not sold in *30 days*, you don't pay us — even after it sells">
-        <div class="field-hint">Wrap words in *asterisks* to give them the soft blue underline highlight.</div>
-      </div>
-
-      <div class="field">
-        <label for="editSubtext">Subtext <span class="opt">(optional)</span></label>
-        <textarea id="editSubtext" placeholder="Answer a few quick questions and we'll get started — no cost, no pressure, no obligation."></textarea>
-      </div>
-
-      <div class="field">
-        <label for="editBullets">Bullet points under the title <span class="opt">(optional, one per line)</span></label>
-        <textarea id="editBullets" placeholder="Sold in 30 days or you don't pay&#10;Local experts, no pressure&#10;Your info stays private"></textarea>
-        <div class="field-hint">Each line becomes a bullet with a check mark under the headline.</div>
+        <label for="mainLinkSelect">Tracking link for direct visitors</label>
+        <select id="mainLinkSelect">
+          <option value="">None — don't track direct visitors</option>
+        </select>
+        <div class="field-hint">Visitors arriving via a <span class="muted">/?t=slug</span> URL keep their own link; this only applies to the bare domain.</div>
       </div>
 
       <div class="row-actions">
         <button type="button" class="btn btn-primary" id="saveSettings">Save changes</button>
-      </div>
-    </div>
-
-    <!-- Preview -->
-    <div class="card">
-      <div class="preview-head">
-        <h2 style="margin-bottom:0">Preview</h2>
-        <div class="row-actions">
-          <div class="device-toggle" role="group" aria-label="Preview device">
-            <button type="button" id="deviceDesktop" class="active">Desktop</button>
-            <button type="button" id="deviceMobile">Mobile</button>
-          </div>
-          <a class="btn btn-ghost btn-small" href="/" target="_blank" rel="noopener">Open in new tab</a>
-        </div>
-      </div>
-      <div class="preview-stage" id="previewStage">
-        <iframe id="previewFrame" title="Landing page preview" src="/?preview=1"></iframe>
       </div>
     </div>
   </main>
@@ -123,12 +97,8 @@
 (function () {
   "use strict";
 
-  var editEyebrow = document.getElementById("editEyebrow");
-  var editHeadline = document.getElementById("editHeadline");
-  var editSubtext = document.getElementById("editSubtext");
-  var editBullets = document.getElementById("editBullets");
+  var mainLinkSelect = document.getElementById("mainLinkSelect");
   var saveSettings = document.getElementById("saveSettings");
-  var previewFrame = document.getElementById("previewFrame");
 
   var toast = document.getElementById("toast");
   var toastTimer = null;
@@ -140,50 +110,33 @@
     toastTimer = setTimeout(function () { toast.classList.remove("show"); }, 2200);
   }
 
-  /* The copy the landing page shows when no custom headline is saved. */
-  var DEFAULT_HEADLINE = "If your home is not sold in *30 days*, you don't pay us — even after it sells";
-
-  function fillForm(settings) {
-    editEyebrow.value = settings.eyebrow || "";
-    editHeadline.value = settings.headline || DEFAULT_HEADLINE;
-    editSubtext.value = settings.subtext || "";
-    editBullets.value = settings.bullets || "";
+  function fillOptions(links, selectedSlug) {
+    links.forEach(function (link) {
+      var opt = document.createElement("option");
+      opt.value = link.slug;
+      opt.textContent = link.name + " (/?t=" + link.slug + ")";
+      mainLinkSelect.appendChild(opt);
+    });
+    mainLinkSelect.value = selectedSlug || "";
+    /* The saved link may have been deleted; fall back to "None". */
+    if (mainLinkSelect.value !== (selectedSlug || "")) mainLinkSelect.value = "";
   }
 
   saveSettings.addEventListener("click", function () {
     saveSettings.disabled = true;
     saveSettings.textContent = "Saving…";
 
-    StarzeyStore.saveLandingSettings({
-      eyebrow: editEyebrow.value.trim(),
-      headline: editHeadline.value.trim(),
-      subtext: editSubtext.value.trim(),
-      bullets: editBullets.value.trim()
+    StarzeyStore.saveAppSettings({
+      mainLinkSlug: mainLinkSelect.value
     }).then(function () {
-      showToast("Landing page updated");
-      /* Reload the preview so the change is visible immediately. */
-      previewFrame.src = "/?preview=1&r=" + Date.now();
+      showToast("Settings saved");
     }).catch(function (err) {
-      showToast(err.message || "Couldn't save changes");
+      showToast(err.message || "Couldn't save settings");
     }).finally(function () {
       saveSettings.disabled = false;
       saveSettings.textContent = "Save changes";
     });
   });
-
-  /* ---------- Desktop / mobile preview toggle ---------- */
-  var previewStage = document.getElementById("previewStage");
-  var deviceDesktop = document.getElementById("deviceDesktop");
-  var deviceMobile = document.getElementById("deviceMobile");
-
-  function setDevice(mobile) {
-    previewStage.classList.toggle("mobile", mobile);
-    deviceDesktop.classList.toggle("active", !mobile);
-    deviceMobile.classList.toggle("active", mobile);
-  }
-
-  deviceDesktop.addEventListener("click", function () { setDevice(false); });
-  deviceMobile.addEventListener("click", function () { setDevice(true); });
 
   document.getElementById("signOut").addEventListener("click", function () {
     StarzeyStore.signOut();
@@ -192,13 +145,12 @@
   /* Auth guard: redirects to /admin/login/ when signed out. */
   StarzeyStore.requireAuth().then(function () {
     document.body.classList.remove("auth-loading");
-    return StarzeyStore.getLandingSettings();
-  }).then(function (settings) {
-    fillForm(settings || {});
+    return Promise.all([StarzeyStore.getLinks(), StarzeyStore.getAppSettings()]);
+  }).then(function (results) {
+    fillOptions(results[0], results[1].mainLinkSlug);
   }).catch(function (err) {
-    fillForm({});
-    showToast("Couldn't load the saved settings — run supabase/schema.sql in Supabase");
-    console.error("Landing settings load failed:", err);
+    showToast("Couldn't load settings — run supabase/schema.sql in Supabase");
+    console.error("Settings load failed:", err);
   });
 
   if ("serviceWorker" in navigator) {
