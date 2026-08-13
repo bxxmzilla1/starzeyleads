@@ -234,6 +234,19 @@
       });
     },
 
+    /* Resets the stats of every tracking link at once. Leads are
+       never touched. */
+    resetAllLinkStats: function () {
+      if (!configured) return notConfigured();
+      return Promise.all([
+        client.from("tracking_links").update({ visits: 0 }).gte("visits", 0),
+        client.from("funnel_events").delete().neq("session_id", ""),
+        client.from("link_visits").delete().neq("visitor_key", "")
+      ]).then(function (results) {
+        results.forEach(function (res) { unwrap(res); });
+      });
+    },
+
     /* Fire-and-forget visit counter (anonymous visitors). Each
        visitorKey (IP, or device id fallback) counts once per link. */
     recordVisit: function (slug, visitorKey) {

@@ -136,9 +136,12 @@
     toastTimer = setTimeout(function () { toast.classList.remove("show"); }, 2200);
   }
 
+  /* The copy the landing page shows when no custom headline is saved. */
+  var DEFAULT_HEADLINE = "If your home is not sold in *30 days*, you don't pay us — even after it sells";
+
   function fillForm(settings) {
     editEyebrow.value = settings.eyebrow || "";
-    editHeadline.value = settings.headline || "";
+    editHeadline.value = settings.headline || DEFAULT_HEADLINE;
     editSubtext.value = settings.subtext || "";
     editBullets.value = settings.bullets || "";
   }
@@ -187,7 +190,11 @@
     document.body.classList.remove("auth-loading");
     return StarzeyStore.getLandingSettings();
   }).then(function (settings) {
-    if (settings) fillForm(settings);
+    fillForm(settings || {});
+  }).catch(function (err) {
+    fillForm({});
+    showToast("Couldn't load the saved settings — run supabase/schema.sql in Supabase");
+    console.error("Landing settings load failed:", err);
   });
 
   if ("serviceWorker" in navigator) {

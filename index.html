@@ -489,7 +489,9 @@
 
     <!-- Hero copy -->
     <section class="hero-copy">
+      <span class="eyebrow" id="heroEyebrow" hidden></span>
       <h1 id="heroHeadline">If your home is not sold in <span class="hl">30 days</span>, you don't pay us — even after it sells</h1>
+      <p class="hero-sub" id="heroSubtext" hidden></p>
       <ul class="trust-list" id="heroBullets" hidden></ul>
     </section>
 
@@ -576,6 +578,7 @@
     var eyebrowEl = document.getElementById("heroEyebrow");
     if (landing.eyebrow && eyebrowEl) {
       eyebrowEl.textContent = landing.eyebrow;
+      eyebrowEl.hidden = false;
     }
     if (landing.headline) {
       /* *text* inside the headline becomes the soft blue underline block. */
@@ -595,6 +598,7 @@
     var subtextEl = document.getElementById("heroSubtext");
     if (landing.subtext && subtextEl) {
       subtextEl.textContent = landing.subtext;
+      subtextEl.hidden = false;
     }
 
     /* Custom bullet points: one per line, rendered with check chips. */

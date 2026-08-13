@@ -83,7 +83,10 @@
 
     <!-- Links list -->
     <div class="card">
-      <h2>Your links</h2>
+      <div class="preview-head">
+        <h2 style="margin-bottom:0">Your links</h2>
+        <button type="button" class="btn btn-ghost btn-small" id="resetAllStats">Reset all stats</button>
+      </div>
       <div id="linksWrap"><div class="empty-state">Loading…</div></div>
     </div>
   </main>
@@ -250,6 +253,27 @@
         }
         break;
     }
+  });
+
+  /* ---------- Reset every link's stats ---------- */
+  var resetAllBtn = document.getElementById("resetAllStats");
+
+  resetAllBtn.addEventListener("click", function () {
+    if (!confirm("Reset the stats of ALL tracking links? Visits, funnel progress, and visitor sessions go back to zero for every link. Leads are kept.")) return;
+
+    resetAllBtn.disabled = true;
+    resetAllBtn.textContent = "Resetting…";
+
+    StarzeyStore.resetAllLinkStats().then(function () {
+      lastSnapshot = null;
+      showToast("All stats reset");
+      return refresh();
+    }).catch(function (err) {
+      showToast(err.message || "Couldn't reset the stats");
+    }).finally(function () {
+      resetAllBtn.disabled = false;
+      resetAllBtn.textContent = "Reset all stats";
+    });
   });
 
   document.getElementById("signOut").addEventListener("click", function () {

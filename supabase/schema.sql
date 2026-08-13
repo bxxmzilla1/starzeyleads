@@ -56,8 +56,15 @@ create table if not exists public.landing_settings (
   updated_at timestamptz not null default now()
 );
 
-insert into public.landing_settings (id) values (1)
+insert into public.landing_settings (id, headline)
+values (1, 'If your home is not sold in *30 days*, you don''t pay us — even after it sells')
 on conflict (id) do nothing;
+
+-- Backfill for rows created before the default headline was seeded,
+-- so the admin editor shows the copy the page actually displays.
+update public.landing_settings
+set headline = 'If your home is not sold in *30 days*, you don''t pay us — even after it sells'
+where id = 1 and headline = '';
 
 -- Cleanup: the live-presence feature was removed.
 drop table if exists public.presence;
