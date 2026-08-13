@@ -220,10 +220,11 @@
         .then(function (res) { return unwrap(res); });
     },
 
-    /* Fire-and-forget visit counter (anonymous visitors). */
-    recordVisit: function (slug) {
+    /* Fire-and-forget visit counter (anonymous visitors). Each
+       visitorKey (IP, or device id fallback) counts once per link. */
+    recordVisit: function (slug, visitorKey) {
       if (!configured) return Promise.resolve();
-      return client.rpc("increment_visits", { p_slug: slug })
+      return client.rpc("increment_visits", { p_slug: slug, p_key: visitorKey })
         .then(function (res) {
           if (res.error) console.error("Starzey/Supabase:", res.error.message);
         });

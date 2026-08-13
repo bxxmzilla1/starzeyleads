@@ -157,17 +157,45 @@ create policy "auth delete funnel events"
   on public.funnel_events for delete to authenticated
   using (true);
 
--- ---------- Atomic visit counter ----------
--- Callable by anonymous visitors without granting them update rights
--- on the table itself.
+-- ---------- Unique visit counter ----------
+-- A visit only counts once per visitor (keyed by IP address, or a
+-- per-device id when the IP can't be resolved). The security-definer
+-- function is callable by anonymous visitors without granting them
+-- any table rights; link_visits has no public policies at all.
 
-create or replace function public.increment_visits(p_slug text)
+create table if not exists public.link_visits (
+  link_slug text not null,
+  visitor_key text not null,
+  created_at timestamptz not null default now(),
+  primary key (link_slug, visitor_key)
+);
+
+alter table public.link_visits enable row level security;
+
+-- Replace the old unconditional counter.
+drop function if exists public.increment_visits(text);
+
+create or replace function public.increment_visits(p_slug text, p_key text)
 returns void
-language sql
+language plpgsql
 security definer
 set search_path = public
 as $$
-  update public.tracking_links set visits = visits + 1 where slug = p_slug;
+begin
+  if p_slug is null or p_key is null or length(p_key) = 0 then
+    return;
+  end if;
+
+  insert into public.link_visits (link_slug, visitor_key)
+  values (p_slug, p_key)
+  on conflict do nothing;
+
+  -- FOUND is true only when the insert actually added a row,
+  -- i.e. this visitor hasn't been counted for this link before.
+  if found then
+    update public.tracking_links set visits = visits + 1 where slug = p_slug;
+  end if;
+end;
 $$;
 
-grant execute on function public.increment_visits(text) to anon, authenticated;
+grant execute on function public.increment_visits(text, text) to anon, authenticated;

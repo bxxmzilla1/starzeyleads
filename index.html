@@ -625,10 +625,6 @@
     console.error("Landing settings lookup failed:", err);
   });
 
-  if (linkSlug && !isPreview) {
-    StarzeyStore.recordVisit(linkSlug);
-  }
-
   /* ------------------------------------------------------------------
    * Funnel progress tracking.
    * Each visitor gets a session id; every completed step is recorded
@@ -660,6 +656,31 @@
   var geoPromise = fetch("/api/geo")
     .then(function (r) { return r.ok ? r.json() : null; })
     .catch(function () { return null; });
+
+  /* Stable per-device id, used to dedupe visits when the IP lookup
+     fails (e.g. offline, ad blocker). */
+  function deviceId() {
+    try {
+      var id = localStorage.getItem("starzey_device_id");
+      if (!id) {
+        id = (window.crypto && crypto.randomUUID)
+          ? crypto.randomUUID()
+          : Date.now().toString(36) + Math.random().toString(36).slice(2);
+        localStorage.setItem("starzey_device_id", id);
+      }
+      return id;
+    } catch (e) {
+      return "device-unknown";
+    }
+  }
+
+  /* Count the visit only once per unique IP address (per link).
+     Repeat loads and refreshes from the same IP are ignored. */
+  if (linkSlug && !isPreview) {
+    geoPromise.then(function (geo) {
+      StarzeyStore.recordVisit(linkSlug, (geo && geo.ip) || deviceId());
+    });
+  }
 
   /* ------------------------------------------------------------------
    * Lead payload — the shape of the Supabase insert.

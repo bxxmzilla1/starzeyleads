@@ -28,7 +28,8 @@ External dependencies: Google Fonts (Nunito Sans) and
 1. Create a free project at [supabase.com](https://supabase.com).
 2. In the SQL Editor, run the contents of `supabase/schema.sql`. This creates
    the `tracking_links` and `leads` tables, row-level security policies, and
-   an `increment_visits()` function for anonymous visit counting.
+   an `increment_visits()` function that counts each visit once per
+   unique IP address per link.
 3. Give the app your **Project URL** and **anon key** (Supabase → Project
    Settings → API). Two ways:
    - **Vercel (recommended):** Project Settings → Environment Variables, add
