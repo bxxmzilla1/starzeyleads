@@ -258,6 +258,7 @@
 
     StarzeyStore.resetLinkStats(currentLink.id, currentLink.slug).then(function () {
       lastSnapshot = null;
+      sessionsLimit = SESSIONS_PAGE;
       showToast("Stats reset");
       return refresh();
     }).catch(function (err) {
@@ -345,8 +346,15 @@
     return "(" + digits.slice(0, 3) + ") " + digits.slice(3, 6) + "-" + digits.slice(6);
   }
 
+  /* Latest 10 sessions by default; "Show more" reveals 10 more at a
+     time. The limit survives the 1-second live refresh. */
+  var SESSIONS_PAGE = 10;
+  var sessionsLimit = SESSIONS_PAGE;
+  var lastSessions = [];
+
   function renderSessions(sessions) {
     var wrap = document.getElementById("sessionsWrap");
+    lastSessions = sessions;
 
     if (sessions.length === 0) {
       wrap.innerHTML =
@@ -358,12 +366,14 @@
     var sorted = sessions.slice().sort(function (a, b) {
       return a.lastAt < b.lastAt ? 1 : -1;
     });
+    var visible = sorted.slice(0, sessionsLimit);
+    var remaining = sorted.length - visible.length;
 
     wrap.innerHTML =
       '<div class="table-wrap"><table><thead><tr>' +
       "<th>Full name</th><th>Phone</th><th>Progress</th><th>Started</th><th>Last activity</th>" +
       "</tr></thead><tbody>" +
-      sorted.map(function (s) {
+      visible.map(function (s) {
         return "<tr>" +
           "<td>" + (s.answers.name ? "<strong>" + esc(s.answers.name) + "</strong>" : '<span class="muted">Not entered yet</span>') + "</td>" +
           "<td>" + (s.answers.phone ? esc(formatPhone(s.answers.phone)) : '<span class="muted">—</span>') + "</td>" +
@@ -372,8 +382,20 @@
           '<td class="muted">' + esc(formatDate(s.lastAt)) + "</td>" +
           "</tr>";
       }).join("") +
-      "</tbody></table></div>";
+      "</tbody></table></div>" +
+      (remaining > 0
+        ? '<div style="text-align:center;margin-top:14px">' +
+          '<button type="button" class="btn btn-ghost btn-small" data-action="show-more">Show more (' + remaining + ' remaining)</button>' +
+          "</div>"
+        : "");
   }
+
+  document.getElementById("sessionsWrap").addEventListener("click", function (e) {
+    var btn = e.target.closest('button[data-action="show-more"]');
+    if (!btn) return;
+    sessionsLimit += SESSIONS_PAGE;
+    renderSessions(lastSessions);
+  });
 
   /* Re-renders only when the data actually changed, so the 1-second
      live refresh never flickers or interrupts interaction. */

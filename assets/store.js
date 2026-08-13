@@ -221,21 +221,17 @@
     },
 
     /* Resets a link's stats: visit counter, visit dedupe rows, and
-       funnel/session history. Leads are never touched. */
+       funnel/session history. Leads are never touched. The three
+       cleanups run independently so one failure can't block the rest. */
     resetLinkStats: function (id, slug) {
       if (!configured) return notConfigured();
-      return client.from("tracking_links")
-        .update({ visits: 0 })
-        .eq("id", id)
-        .then(function (res) {
-          unwrap(res);
-          return client.from("link_visits").delete().eq("link_slug", slug);
-        })
-        .then(function (res) {
-          unwrap(res);
-          return client.from("funnel_events").delete().eq("link_slug", slug);
-        })
-        .then(function (res) { return unwrap(res); });
+      return Promise.all([
+        client.from("tracking_links").update({ visits: 0 }).eq("id", id),
+        client.from("funnel_events").delete().eq("link_slug", slug),
+        client.from("link_visits").delete().eq("link_slug", slug)
+      ]).then(function (results) {
+        results.forEach(function (res) { unwrap(res); });
+      });
     },
 
     /* Fire-and-forget visit counter (anonymous visitors). Each
